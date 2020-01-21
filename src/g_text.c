@@ -943,13 +943,13 @@ void canvas_atom(t_glist *gl, t_atomtype type,
     if (type == A_FLOAT)
     {
         x->a_atom.a_w.w_float = 0;
-        x->a_text.te_width = 5;
+        x->a_text.te_width = 0;
         SETFLOAT(&at, 0);
     }
     else
     {
         x->a_atom.a_w.w_symbol = &s_symbol;
-        x->a_text.te_width = 10;
+        x->a_text.te_width = 0;
         SETSYMBOL(&at, &s_symbol);
     }
     binbuf_add(x->a_text.te_binbuf, 1, &at);
