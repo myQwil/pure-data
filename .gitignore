@@ -78,3 +78,6 @@ portaudio/portaudio/portaudio-2.0.pc
 
 # script build artifacts
 mac/build
+
+# VSCode Folder
+.vscode
