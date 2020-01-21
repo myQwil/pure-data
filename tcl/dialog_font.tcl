@@ -6,7 +6,7 @@ namespace eval ::dialog_font:: {
     variable stretchval 100
     variable whichstretch 1
     variable canvaswindow
-    variable sizes {8 10 12 16 24 36}
+    variable sizes {8 10 12 14 16 24 36}
 
     namespace export pdtk_canvas_dofont
 }
