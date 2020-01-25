@@ -201,7 +201,7 @@ int sys_fontheight(int fontsize)
 }
 
 int sys_defaultfont;
-#define DEFAULTFONT 12
+#define DEFAULTFONT 14
 
 static void openit(const char *dirname, const char *filename)
 {
