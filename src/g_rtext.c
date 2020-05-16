@@ -13,6 +13,7 @@
 #include "m_pd.h"
 #include "s_stuff.h"
 #include "g_canvas.h"
+#include "g_colors.h"
 #include "s_utf8.h"
 
 #define LMARGIN 2
@@ -330,13 +331,13 @@ static void rtext_senditup(t_rtext *x, int action, int *widthp, int *heightp,
             character is an unescaped backslash ('\') which would have confused
             tcl/tk by escaping the close brace otherwise.  The GUI code
             drops the last character in the string. */
-        sys_vgui("pdtk_text_new .x%lx.c {%s %s text} %f %f {%s } %d %s\n",
+        sys_vgui("pdtk_text_new .x%lx.c {%s %s text} %f %f {%s } %d #%06x\n",
             canvas, x->x_tag, rtext_gettype(x)->s_name,
             dispx + lmargin, dispy + tmargin,
             escbuf,
             sys_hostfontsize(font, glist_getzoom(x->x_glist)),
-            (glist_isselected(x->x_glist,
-                &x->x_glist->gl_gobj)? "blue" : "black"));
+            (glist_isselected(x->x_glist, &x->x_glist->gl_gobj) ?
+                PD_COLOR_SELECT : PD_COLOR_FG));
     }
     else if (action == SEND_UPDATE)
     {
@@ -482,8 +483,8 @@ void rtext_select(t_rtext *x, int state)
 {
     t_glist *glist = x->x_glist;
     t_canvas *canvas = glist_getcanvas(glist);
-    sys_vgui(".x%lx.c itemconfigure %s -fill %s\n", canvas,
-        x->x_tag, (state? "blue" : "black"));
+    sys_vgui(".x%lx.c itemconfigure %s -fill #%06x\n", canvas,
+        x->x_tag, (state ? PD_COLOR_SELECT : PD_COLOR_FG));
 }
 
 void rtext_activate(t_rtext *x, int state)

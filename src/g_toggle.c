@@ -55,11 +55,12 @@ void toggle_draw_new(t_toggle *x, t_glist *glist)
         crossw = 3;
     crossw *= IEMGUI_ZOOM(x);
 
-    sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -fill #%06x -tags %lxBASE\n",
+    sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d "
+        " -fill #%06x -outline #%06x -tags %lxBASE\n",
              canvas, xpos, ypos,
              xpos + x->x_gui.x_w, ypos + x->x_gui.x_h,
              IEMGUI_ZOOM(x),
-             x->x_gui.x_bcol, x);
+             x->x_gui.x_bcol, PD_COLOR_FG, x);
     sys_vgui(".x%lx.c create line %d %d %d %d -width %d -fill #%06x -tags %lxX1\n",
              canvas,
              xpos + crossw + IEMGUI_ZOOM(x), ypos + crossw + IEMGUI_ZOOM(x),
@@ -71,17 +72,19 @@ void toggle_draw_new(t_toggle *x, t_glist *glist)
              xpos + x->x_gui.x_w - crossw - IEMGUI_ZOOM(x), ypos + crossw + IEMGUI_ZOOM(x),
              crossw, (x->x_on != 0.0) ? x->x_gui.x_fcol : x->x_gui.x_bcol, x);
     if(!x->x_gui.x_fsf.x_snd_able)
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxOUT%d outlet]\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags [list %lxOUT%d outlet]\n",
              canvas,
              xpos, ypos + x->x_gui.x_h + IEMGUI_ZOOM(x) - ioh,
              xpos + iow, ypos + x->x_gui.x_h,
-             x, 0);
+             PD_COLOR_FG, x, 0);
     if(!x->x_gui.x_fsf.x_rcv_able)
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxIN%d inlet]\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags [list %lxIN%d inlet]\n",
              canvas,
              xpos, ypos,
              xpos + iow, ypos - IEMGUI_ZOOM(x) + ioh,
-             x, 0);
+             PD_COLOR_FG, x, 0);
     sys_vgui(".x%lx.c create text %d %d -text {%s} -anchor w \
              -font {{%s} -%d %s} -fill #%06x -tags [list %lxLABEL label text]\n",
              canvas, xpos + x->x_gui.x_ldx * IEMGUI_ZOOM(x),
@@ -153,7 +156,7 @@ void toggle_draw_config(t_toggle* x, t_glist* glist)
 
     sys_vgui(".x%lx.c itemconfigure %lxLABEL -font {{%s} -%d %s} -fill #%06x -text {%s} \n",
              canvas, x, x->x_gui.x_font, x->x_gui.x_fontsize * IEMGUI_ZOOM(x), sys_fontweight,
-             (x->x_gui.x_fsf.x_selected ? IEM_GUI_COLOR_SELECTED : x->x_gui.x_lcol),
+             (x->x_gui.x_fsf.x_selected ? PD_COLOR_SELECT : x->x_gui.x_lcol),
              (strcmp(x->x_gui.x_lab->s_name, "empty") ? x->x_gui.x_lab->s_name : ""));
     sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%06x\n", canvas, x,
              x->x_gui.x_bcol);
@@ -171,22 +174,24 @@ void toggle_draw_io(t_toggle* x, t_glist* glist, int old_snd_rcv_flags)
     t_canvas *canvas = glist_getcanvas(glist);
 
     if((old_snd_rcv_flags & IEM_GUI_OLD_SND_FLAG) && !x->x_gui.x_fsf.x_snd_able) {
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lxOUT%d\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags %lxOUT%d\n",
              canvas,
              xpos, ypos + x->x_gui.x_h + IEMGUI_ZOOM(x) - ioh,
              xpos + iow, ypos + x->x_gui.x_h,
-             x, 0);
+             PD_COLOR_FG, x, 0);
         /* keep above outlet */
         sys_vgui(".x%lx.c raise %lxLABEL %lxOUT%d\n", canvas, x, x, 0);
     }
     if(!(old_snd_rcv_flags & IEM_GUI_OLD_SND_FLAG) && x->x_gui.x_fsf.x_snd_able)
         sys_vgui(".x%lx.c delete %lxOUT%d\n", canvas, x, 0);
     if((old_snd_rcv_flags & IEM_GUI_OLD_RCV_FLAG) && !x->x_gui.x_fsf.x_rcv_able) {
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lxIN%d\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags %lxIN%d\n",
              canvas,
              xpos, ypos,
              xpos + iow, ypos - IEMGUI_ZOOM(x) + ioh,
-             x, 0);
+             PD_COLOR_FG, x, 0);
         /* keep above inlet */
         sys_vgui(".x%lx.c raise %lxLABEL %lxIN%d\n", canvas, x, x, 0);
     }
@@ -200,12 +205,12 @@ void toggle_draw_select(t_toggle* x, t_glist* glist)
 
     if(x->x_gui.x_fsf.x_selected)
     {
-        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, IEM_GUI_COLOR_SELECTED);
-        sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x, IEM_GUI_COLOR_SELECTED);
+        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, PD_COLOR_SELECT);
+        sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x, PD_COLOR_SELECT);
     }
     else
     {
-        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, IEM_GUI_COLOR_NORMAL);
+        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, PD_COLOR_FG);
         sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x, x->x_gui.x_lcol);
     }
 }
@@ -414,9 +419,9 @@ static void *toggle_new(t_symbol *s, int argc, t_atom *argv)
     iem_inttosymargs(&x->x_gui.x_isa, 0);
     iem_inttofstyle(&x->x_gui.x_fsf, 0);
 
-    x->x_gui.x_bcol = 0xFCFCFC;
-    x->x_gui.x_fcol = 0x00;
-    x->x_gui.x_lcol = 0x00;
+    x->x_gui.x_bcol = PD_COLOR_BG;
+    x->x_gui.x_fcol = PD_COLOR_FG;
+    x->x_gui.x_lcol = PD_COLOR_FG;
 
     if(((argc == 13)||(argc == 14))&&IS_A_FLOAT(argv,0)
        &&IS_A_FLOAT(argv,1)

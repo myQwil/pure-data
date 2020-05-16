@@ -62,7 +62,7 @@ proc ::dialog_array::pdtk_array_listview_new {id arrayName page} {
     set font 12
     set $windowName.lb [listbox $windowName.lb -height 20 -width 25\
                             -selectmode extended \
-                            -relief solid -background white -borderwidth 1 \
+                            -relief solid -background black -borderwidth 1 \
                             -font [format {{%s} %d %s} $::font_family $font $::font_weight]\
                             -yscrollcommand "$windowName.lb.sb set"]
     set $windowName.lb.sb [scrollbar $windowName.lb.sb \

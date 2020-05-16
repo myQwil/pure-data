@@ -454,8 +454,7 @@ static void sigvcf_dsp(t_sigvcf *x, t_signal **sp)
             x->x_ctl, (t_int)sp[0]->s_n);
 }
 
-static
-void sigvcf_setup(void)
+static void sigvcf_setup(void)
 {
     sigvcf_class = class_new(gensym("vcf~"), (t_newmethod)sigvcf_new, 0,
         sizeof(t_sigvcf), 0, A_DEFFLOAT, 0);

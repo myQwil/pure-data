@@ -821,11 +821,12 @@ static void canvas_drawlines(t_canvas *x)
         linetraverser_start(&t, x);
         while ((oc = linetraverser_next(&t)))
             sys_vgui(
-        ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
+        ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord] "
+            " -fill #%06x \n",
                 glist_getcanvas(x),
                 t.tr_lx1, t.tr_ly1, t.tr_lx2, t.tr_ly2,
                 (outlet_getsymbol(t.tr_outlet) == &s_signal ? 2:1) * x->gl_zoom,
-                oc);
+                oc, PD_COLOR_FG);
     }
 }
 

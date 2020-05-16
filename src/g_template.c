@@ -8,6 +8,7 @@
 
 #include "m_pd.h"
 #include "g_canvas.h"
+#include "g_colors.h"
 
 /*
 This file contains text objects you would put in a canvas to define a
@@ -1814,13 +1815,13 @@ static void plot_vis(t_gobj *z, t_glist *glist,
                 if (i == nelem-1 || inextx != ixpix)
                 {
                     sys_vgui(".x%lx.c create rectangle %d %d %d %d "
-                        "-fill black -width 0 -tags [list plot%lx array]\n",
+                        "-fill #%06x -width 0 -tags [list plot%lx array]\n",
                         glist_getcanvas(glist),
                         ixpix, (int)glist_ytopixels(glist,
                             basey + fielddesc_cvttocoord(yfielddesc, minyval)),
                         inextx, (int)(glist_ytopixels(glist,
                             basey + fielddesc_cvttocoord(yfielddesc, maxyval))
-                                + linewidth), data);
+                                + linewidth), PD_COLOR_FG, data);
                     ndrawn++;
                     minyval = 1e20;
                     maxyval = -1e20;
@@ -1959,7 +1960,7 @@ static void plot_vis(t_gobj *z, t_glist *glist,
                         fielddesc_cvttocoord(yfielddesc, yval)));
 
                 sys_vgui("-width %f\\\n", linewidth);
-                sys_vgui("-fill %s\\\n", outline);
+                sys_vgui("-fill #%06x\\\n", PD_COLOR_FG);
                 if (style == PLOTSTYLE_BEZ) sys_vgui("-smooth 1\\\n");
 
                 sys_vgui("-tags [list plot%lx array]\n", data);

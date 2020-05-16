@@ -89,7 +89,7 @@ void my_canvas_draw_config(t_my_canvas* x, t_glist* glist)
     sys_vgui(".x%lx.c itemconfigure %lxRECT -fill #%06x -outline #%06x\n", canvas, x,
              x->x_gui.x_bcol, x->x_gui.x_bcol);
     sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x,
-             (x->x_gui.x_fsf.x_selected ? IEM_GUI_COLOR_SELECTED : x->x_gui.x_bcol));
+             (x->x_gui.x_fsf.x_selected ? PD_COLOR_SELECT : x->x_gui.x_bcol));
     sys_vgui(".x%lx.c itemconfigure %lxLABEL -font {{%s} -%d %s} -fill #%06x -text {%s} \n",
              canvas, x, x->x_gui.x_font, x->x_gui.x_fontsize * IEMGUI_ZOOM(x), sys_fontweight,
              x->x_gui.x_lcol,
@@ -102,7 +102,7 @@ void my_canvas_draw_select(t_my_canvas* x, t_glist* glist)
 
     if(x->x_gui.x_fsf.x_selected)
     {
-        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, IEM_GUI_COLOR_SELECTED);
+        sys_vgui(".x%lx.c itemconfigure %lxBASE -outline #%06x\n", canvas, x, PD_COLOR_SELECT);
     }
     else
     {

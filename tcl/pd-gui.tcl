@@ -293,7 +293,12 @@ proc init_for_platform {} {
     switch -- $::windowingsystem {
         "x11" {
             set ::modifier "Control"
-            option add *PatchWindow*Canvas.background "white" startupFile
+            option add *PatchWindow*Canvas.background "#181818" userDefault
+            # enforce black text in check/radio buttons and file/dir dialogs
+            option add *Checkbutton.foreground "black" userDefault
+            option add *Radiobutton.foreground "black" userDefault
+            option add *TkFDialog*foreground "black" userDefault
+            option add *TkChooseDir*foreground "black" userDefault
             # add control to show/hide hidden files in the open panel (load
             # the tk_getOpenFile dialog once, otherwise it will not work)
             catch {tk_getOpenFile -with-invalid-argument}
@@ -306,7 +311,7 @@ proc init_for_platform {} {
                      [list [_ "Pd Files"]          {.pd}  ] \
                      [list [_ "Max Patch Files"]   {.pat} ] \
                      [list [_ "Max Text Files"]    {.mxt} ] \
-                    ]
+                ]
             # some platforms have a menubar on the top, so place below them
             set ::menubarsize 0
             # Tk handles the window placement differently on each
@@ -346,6 +351,7 @@ proc init_for_platform {} {
                 # hack until DVSM bug is fixed on macOS 10.15+
                 set ::font_family "Menlo"
             }
+            option add *PatchWindow*Canvas.background "#181818" userDefault
             option add *DialogWindow*background "#E8E8E8" startupFile
             option add *DialogWindow*Entry.highlightBackground "#E8E8E8" startupFile
             option add *DialogWindow*Button.highlightBackground "#E8E8E8" startupFile
@@ -380,7 +386,7 @@ proc init_for_platform {} {
         }
         "win32" {
             set ::modifier "Control"
-            option add *PatchWindow*Canvas.background "white" startupFile
+            option add *PatchWindow*Canvas.background "#181818" userDefault
             # fix menu font size on Windows with tk scaling = 1
             font create menufont -family Tahoma -size -11
             option add *Menu.font menufont startupFile

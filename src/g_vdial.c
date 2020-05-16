@@ -29,7 +29,7 @@ void vradio_draw_update(t_gobj *client, t_glist *glist)
     t_hradio *x = (t_hradio *)client;
     if(glist_isvisible(glist))
     {
-        t_canvas *canvas=glist_getcanvas(glist);
+        t_canvas *canvas = glist_getcanvas(glist);
 
         sys_vgui(".x%lx.c itemconfigure %lxBUT%d -fill #%06x -outline #%06x\n",
                  canvas, x, x->x_drawn,
@@ -54,9 +54,10 @@ void vradio_draw_new(t_vradio *x, t_glist *glist)
 
     for(i = 0; i < n; i++)
     {
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -fill #%06x -tags %lxBASE%d\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d "
+            " -fill #%06x -outline #%06x -tags %lxBASE%d\n",
                  canvas, xx11, yy11, xx12, yy12, IEMGUI_ZOOM(x),
-                 x->x_gui.x_bcol, x, i);
+                 x->x_gui.x_bcol, PD_COLOR_FG, x, i);
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #%06x -outline #%06x -tags %lxBUT%d\n",
                  canvas, xx21, yy21, xx22, yy22,
                  (x->x_on == i) ? x->x_gui.x_fcol : x->x_gui.x_bcol,
@@ -68,18 +69,21 @@ void vradio_draw_new(t_vradio *x, t_glist *glist)
         x->x_drawn = x->x_on;
     }
     if(!x->x_gui.x_fsf.x_snd_able)
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxOUT%d outlet]\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags [list %lxOUT%d outlet]\n",
              canvas,
              xx11, yy11 + IEMGUI_ZOOM(x) - ioh,
              xx11 + iow, yy11,
-             x, 0);
+             PD_COLOR_FG, x, 0);
     if(!x->x_gui.x_fsf.x_rcv_able)
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxIN%d inlet]\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d "
+            " -fill grey -outline #%06x -tags [list %lxIN%d inlet]\n",
              canvas,
              xx11, yy11b,
              xx11 + iow, yy11b - IEMGUI_ZOOM(x) + ioh,
-             x, 0);
-    sys_vgui(".x%lx.c create text %d %d -text {%s} -anchor w -font {{%s} -%d %s} -fill #%06x -tags [list %lxLABEL label text]\n",
+             PD_COLOR_FG, x, 0);
+    sys_vgui(".x%lx.c create text %d %d -text {%s} -anchor w "
+        " -font {{%s} -%d %s} -fill #%06x -tags [list %lxLABEL label text]\n",
              canvas, xx11 + x->x_gui.x_ldx * IEMGUI_ZOOM(x),
              yy11b + x->x_gui.x_ldy * IEMGUI_ZOOM(x),
              (strcmp(x->x_gui.x_lab->s_name, "empty") ? x->x_gui.x_lab->s_name : ""),
@@ -148,7 +152,7 @@ void vradio_draw_config(t_vradio* x, t_glist* glist)
 
     sys_vgui(".x%lx.c itemconfigure %lxLABEL -font {{%s} -%d %s} -fill #%06x -text {%s} \n",
              canvas, x, x->x_gui.x_font, x->x_gui.x_fontsize * IEMGUI_ZOOM(x), sys_fontweight,
-             x->x_gui.x_fsf.x_selected ? IEM_GUI_COLOR_SELECTED : x->x_gui.x_lcol,
+             x->x_gui.x_fsf.x_selected ? PD_COLOR_SELECT : x->x_gui.x_lcol,
              strcmp(x->x_gui.x_lab->s_name, "empty") ? x->x_gui.x_lab->s_name : "");
     for(i=0; i<n; i++)
     {
@@ -209,16 +213,16 @@ void vradio_draw_select(t_vradio* x, t_glist* glist)
         for(i = 0; i < n; i++)
         {
             sys_vgui(".x%lx.c itemconfigure %lxBASE%d -outline #%06x\n", canvas, x, i,
-                     IEM_GUI_COLOR_SELECTED);
+                     PD_COLOR_SELECT);
         }
-        sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x, IEM_GUI_COLOR_SELECTED);
+        sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x, PD_COLOR_SELECT);
     }
     else
     {
         for(i = 0; i < n; i++)
         {
             sys_vgui(".x%lx.c itemconfigure %lxBASE%d -outline #%06x\n", canvas, x, i,
-                     IEM_GUI_COLOR_NORMAL);
+                     PD_COLOR_FG);
         }
         sys_vgui(".x%lx.c itemconfigure %lxLABEL -fill #%06x\n", canvas, x,
                  x->x_gui.x_lcol);
@@ -581,9 +585,9 @@ static void *vradio_donew(t_symbol *s, int argc, t_atom *argv, int old)
     char str[144];
     float fval = 0;
 
-    x->x_gui.x_bcol = 0xFCFCFC;
-    x->x_gui.x_fcol = 0x00;
-    x->x_gui.x_lcol = 0x00;
+    x->x_gui.x_bcol = PD_COLOR_BG;
+    x->x_gui.x_fcol = PD_COLOR_FG;
+    x->x_gui.x_lcol = PD_COLOR_FG;
 
     if((argc == 15)&&IS_A_FLOAT(argv,0)&&IS_A_FLOAT(argv,1)&&IS_A_FLOAT(argv,2)
        &&IS_A_FLOAT(argv,3)

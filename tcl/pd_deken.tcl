@@ -627,10 +627,10 @@ proc ::deken::open_searchui {mytoplevel} {
         raise $mytoplevel
     } else {
         ::deken::create_dialog $mytoplevel
-        $mytoplevel.results tag configure error -foreground red
+        $mytoplevel.results tag configure error -foreground pink
         $mytoplevel.results tag configure warn -foreground orange
         $mytoplevel.results tag configure info -foreground grey
-        $mytoplevel.results tag configure highlight -foreground blue
+        $mytoplevel.results tag configure highlight -foreground cyan
         $mytoplevel.results tag configure archmatch
         $mytoplevel.results tag configure noarchmatch -foreground grey
     }
@@ -654,7 +654,7 @@ proc ::deken::create_dialog {mytoplevel} {
     frame $mytoplevel.searchbit
     pack $mytoplevel.searchbit -side top -fill x
 
-    entry $mytoplevel.searchbit.entry -font 18 -relief sunken -highlightthickness 1 -highlightcolor blue
+    entry $mytoplevel.searchbit.entry -font 18 -relief sunken -highlightthickness 1 -highlightcolor cyan
     pack $mytoplevel.searchbit.entry -side left -padx 6 -fill x -expand true
     bind $mytoplevel.searchbit.entry <Key-Return> "::deken::initiate_search $mytoplevel"
     bind $mytoplevel.searchbit.entry <KeyRelease> "::deken::update_searchbutton $mytoplevel"
@@ -822,7 +822,7 @@ proc ::deken::preferences::create {mytoplevel} {
     set pathdoit [::deken::preferences::create_pathentry ${pathsframe} ${row} ::deken::preferences::installpath "USER" true]
     incr row
     [lindex $pathdoit 0] configure \
-        -foreground blue \
+        -foreground cyan \
         -value "USER" \
         -textvariable ::deken::preferences::userinstallpath \
         -variable ::deken::preferences::installpath

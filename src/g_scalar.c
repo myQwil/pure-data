@@ -13,6 +13,7 @@ can contain numbers, sublists, and arrays.
 #include <stdio.h>      /* for read/write to files */
 #include "m_pd.h"
 #include "g_canvas.h"
+#include "g_colors.h"
 
 t_class *scalar_class;
 
@@ -213,9 +214,9 @@ static void scalar_drawselectrect(t_scalar *x, t_glist *glist, int state)
         scalar_getrect(&x->sc_gobj, glist, &x1, &y1, &x2, &y2);
         x1--; x2++; y1--; y2++;
         sys_vgui(".x%lx.c create line %d %d %d %d %d %d %d %d %d %d \
-            -width 0 -fill blue -tags select%lx\n",
+            -width 0 -fill #%06x -tags select%lx\n",
                 glist_getcanvas(glist), x1, y1, x1, y2, x2, y2, x2, y1, x1, y1,
-                x);
+                PD_COLOR_SELECT, x);
     }
     else
     {

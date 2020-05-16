@@ -8,6 +8,7 @@
 #include "m_imp.h"
 #include "s_stuff.h"
 #include "g_canvas.h"
+#include "g_colors.h"
 #include "g_undo.h"
 #include "s_utf8.h" /*-- moo --*/
 #include <string.h>
@@ -174,8 +175,8 @@ void glist_selectline(t_glist *x, t_outconnect *oc, int index1,
         x->gl_editor->e_selectline_index2 = index2;
         x->gl_editor->e_selectline_inno = inno;
         x->gl_editor->e_selectline_tag = oc;
-        sys_vgui(".x%lx.c itemconfigure l%lx -fill blue\n",
-            x, x->gl_editor->e_selectline_tag);
+        sys_vgui(".x%lx.c itemconfigure l%lx -fill #%06x\n",
+            x, x->gl_editor->e_selectline_tag, PD_COLOR_SELECT);
     }
 }
 
@@ -184,8 +185,8 @@ void glist_deselectline(t_glist *x)
     if (x->gl_editor)
     {
         x->gl_editor->e_selectedline = 0;
-        sys_vgui(".x%lx.c itemconfigure l%lx -fill black\n",
-            x, x->gl_editor->e_selectline_tag);
+        sys_vgui(".x%lx.c itemconfigure l%lx -fill #%06x\n",
+            x, x->gl_editor->e_selectline_tag, PD_COLOR_FG);
     }
 }
 
@@ -2431,9 +2432,11 @@ static void canvas_doclick(t_canvas *x, int xpos, int ypos, int which,
                         x->gl_editor->e_xwas = xpos;
                         x->gl_editor->e_ywas = ypos;
                         sys_vgui(
-                            ".x%lx.c create line %d %d %d %d -width %d -tags x\n",
+                            ".x%lx.c create line %d %d %d %d -width %d -tags x "
+                                " -fill #%06x\n",
                             x, xpos, ypos, xpos, ypos,
-                            (issignal ? 2 : 1) * x->gl_zoom);
+                            (issignal ? 2 : 1) * x->gl_zoom,
+                            PD_COLOR_FG);
                     }
                     else canvas_setcursor(x, CURSOR_EDITMODE_CONNECT);
                 }
@@ -2576,8 +2579,8 @@ static void canvas_doclick(t_canvas *x, int xpos, int ypos, int which,
     if (doit)
     {
         if (!shiftmod) glist_noselect(x);
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags x\n",
-            x, xpos, ypos, xpos, ypos);
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags x -outline #%06x\n",
+            x, xpos, ypos, xpos, ypos, PD_COLOR_FG);
         x->gl_editor->e_xwas = xpos;
         x->gl_editor->e_ywas = ypos;
         x->gl_editor->e_onmotion = MA_REGION;
@@ -2642,12 +2645,13 @@ static int tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin
                 + iom;
             ly2 = y21;
             sys_vgui(
-                ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
+                ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord] "
+                    " -fill #%06x\n",
                 glist_getcanvas(x),
                 lx1, ly1, lx2, ly2,
                 (obj_issignaloutlet(src, nout) ? 2 : 1) *
                 x->gl_zoom,
-                oc);
+                oc, PD_COLOR_FG);
             canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
                     canvas_getindex(x, &src->ob_g), nout,
                     canvas_getindex(x, &sink->ob_g), nin));
@@ -4342,9 +4346,11 @@ void canvas_connect(t_canvas *x, t_floatarg fwhoout, t_floatarg foutno,
     if (glist_isvisible(x) && x->gl_havewindow)
     {
         sys_vgui(
-            ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
+            ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord] "
+                " -fill #%06x\n",
             glist_getcanvas(x), 0, 0, 0, 0,
-            (obj_issignaloutlet(objsrc, outno) ? 2 : 1) * x->gl_zoom, oc);
+            (obj_issignaloutlet(objsrc, outno) ? 2 : 1) * x->gl_zoom, oc,
+            PD_COLOR_FG);
         canvas_fixlinesfor(x, objsrc);
     }
     return;

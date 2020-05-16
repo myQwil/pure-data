@@ -10,6 +10,7 @@ to this file... */
 #include "m_pd.h"
 
 #include "g_canvas.h"
+#include "g_colors.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -734,9 +735,10 @@ static void graph_vis(t_gobj *gr, t_glist *parent_glist, int vis)
 
             /* draw a rectangle around the graph */
         sys_vgui(".x%lx.c create line %d %d %d %d %d %d %d %d %d %d "
-            "-width %d -capstyle projecting -tags [list %s graph]\n",
+            "-width %d -fill #%06x -capstyle projecting -tags [list %s graph]\n",
             glist_getcanvas(x->gl_owner),
-            x1, y1, x1, y2, x2, y2, x2, y1, x1, y1, glist_getzoom(x), tag);
+            x1, y1, x1, y2, x2, y2, x2, y1, x1, y1, glist_getzoom(x),
+            PD_COLOR_FG, tag);
 
             /* if there's just one "garray" in the graph, write its name
                 along the top */
@@ -746,10 +748,10 @@ static void graph_vis(t_gobj *gr, t_glist *parent_glist, int vis)
         {
             i -= glist_fontheight(x);
             sys_vgui(".x%lx.c create text %d %d -text {%s} -anchor nw "
-                "-font {{%s} -%d %s} -tags [list %s label graph]\n",
+                "-font {{%s} -%d %s} -fill #%06x -tags [list %s label graph]\n",
                 (long)glist_getcanvas(x),  x1, i,
                 arrayname->s_name, sys_font,
-                fs, sys_fontweight, tag);
+                fs, sys_fontweight, PD_COLOR_FG, tag);
         }
 
             /* draw ticks on horizontal borders.  If lperb field is
@@ -956,10 +958,12 @@ static void graph_select(t_gobj *z, t_glist *glist, int state)
         t_rtext *y = glist_findrtext(glist, &x->gl_obj);
         if (canvas_showtext(x))
             rtext_select(y, state);
-        sys_vgui(".x%lx.c itemconfigure %sR -fill %s\n", glist,
-        rtext_gettag(y), (state? "blue" : "black"));
-        sys_vgui(".x%lx.c itemconfigure graph%lx -fill %s\n",
-            glist_getcanvas(glist), z, (state? "blue" : "black"));
+        sys_vgui(".x%lx.c itemconfigure %sR -fill #%06x\n",
+            glist, rtext_gettag(y),
+            (state ? PD_COLOR_SELECT : PD_COLOR_FG));
+        sys_vgui(".x%lx.c itemconfigure graph%lx -fill #%06x\n",
+            glist_getcanvas(glist), z,
+            (state ? PD_COLOR_SELECT : PD_COLOR_FG));
     }
 }
 
