@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
@@ -58,15 +59,10 @@ void binbuf_clear(t_binbuf *x)
     x->b_n = 0;
 }
 
-static int strisdigit(const char *s)
-{
-    return (*s >= '0' && *s <= '9');
-}
-
     /* dollar atom string checker */
 static int strisint(const char *s)
 {
-    return (strisdigit(s) || *s == '-' && !strisdigit(s-1) && strisdigit(s+1));
+    return (isdigit(*s) || *s == '-' && !isdigit(s[-1]) && isdigit(s[1]));
 }
 
     /* square-bracketed dollsym atom string checker */
@@ -151,7 +147,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
 
                 if (floatstate >= 0)
                 {
-                    int digit = (c >= '0' && c <= '9'),
+                    int digit = isdigit(c),
                         dot = (c == '.'), minus = (c == '-'),
                         plusminus = (minus || (c == '+')),
                         expon = (c == 'e' || c == 'E');
@@ -569,9 +565,9 @@ static int binbuf_expanddollsym(const char *s, char *buf, t_atom *dollar0,
     int argno = (int)atol(cs);
 
     *buf=0;
-    while (c && (c>='0' && c<='9' || c=='-' || c==']' && brak))
+    while (c && (isdigit(c) || c=='-' || c==']' && brak))
     {
-        if (c == '-' && (strisdigit(cs-1) || !strisdigit(cs+1)))
+        if (c == '-' && (isdigit(cs[-1]) || !isdigit(cs[1])))
             break;
         if (c == ']')
         {
