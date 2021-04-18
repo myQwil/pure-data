@@ -1097,10 +1097,10 @@ broken:
 
 int binbuf_read(t_binbuf *b, const char *filename, const char *dirname, int crflag)
 {
-    long length;
+    long length, res;
     int fd;
     int readret;
-    char *buf;
+    char *buf, *zip;
     char namebuf[MAXPDSTRING];
 
     if (*dirname)
@@ -1109,6 +1109,19 @@ int binbuf_read(t_binbuf *b, const char *filename, const char *dirname, int crfl
         snprintf(namebuf, MAXPDSTRING-1, "%s", filename);
     namebuf[MAXPDSTRING-1] = 0;
 
+        /* is the file inside of a zip archive? */
+    if (zip = strstr(namebuf, "!//"))
+    {
+        strcpy(zip, ".pdz");
+        if ((res = sys_zipread(namebuf, zip+5, &buf, -1)) < 0)
+        {
+            fprintf(stderr, "zipread: ");
+            perror(namebuf);
+            return(1);
+        }
+        length = res;
+        goto success;
+    }
     if ((fd = sys_open(namebuf, 0)) < 0)
     {
         fprintf(stderr, "open: ");
@@ -1131,6 +1144,29 @@ int binbuf_read(t_binbuf *b, const char *filename, const char *dirname, int crfl
         t_freebytes(buf, length);
         return(1);
     }
+        /* is the file itself a zip archive? */
+    if (!strncmp("PK\003\004", buf, 4))
+    {
+        int len = strlen(namebuf);
+        snprintf(namebuf+len, MAXPDSTRING-len-1, "/main.pd");
+        namebuf[len] = namebuf[MAXPDSTRING-1] = 0;
+        char *name = namebuf + len + 1;
+        if ((res = sys_zipread(namebuf, name, &buf, length)) < 0)
+        {
+            fprintf(stderr, "zipread: ");
+            perror(name);
+            close(fd);
+            t_freebytes(buf, length);
+            return (1);
+        }
+        else
+        {
+            length = res;
+            namebuf[len] = 0;
+            glob_setfilename(0, gensym(name), gensym(namebuf));
+        }
+    }
+    success:
         /* optionally map carriage return to semicolon */
     if (crflag)
     {
@@ -1146,7 +1182,8 @@ int binbuf_read(t_binbuf *b, const char *filename, const char *dirname, int crfl
 #endif
 
     t_freebytes(buf, length);
-    close(fd);
+    if (!zip)
+        close(fd);
     return (0);
 }
 

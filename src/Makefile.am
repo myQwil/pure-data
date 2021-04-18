@@ -287,6 +287,8 @@ pd_LDFLAGS_core += -export-dynamic
 # on Ubuntu/Karmic 9.10, it doesn't seem to find libm, so force it
 pd_LDFLAGS_core += $(LIBM)
 
+pd_LDFLAGS_core += -lzip
+
 endif
 
 ##### Apple Mac OSX #####
