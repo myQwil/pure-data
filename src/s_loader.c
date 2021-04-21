@@ -3,7 +3,9 @@
 * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
 #if defined(HAVE_LIBDL) || defined(__FreeBSD__)
+#define _GNU_SOURCE
 #include <dlfcn.h>
+#include <sys/mman.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <stdlib.h>
@@ -108,6 +110,38 @@ void sys_putonloadlist(const char *classname)
     sys_loaded = ll;
     /* post("put on list %s", classname); */
 }
+
+#if defined(HAVE_LIBDL) || defined(__FreeBSD__)
+int sys_zipmemfd(char *filename, char *zip)
+{
+    int fd;
+    char *buf;
+    long length;
+    strcpy(zip, ".pdz");
+    if ((length = sys_zipread(filename, zip+5, &buf, -1)) < 0)
+    {
+        fprintf(stderr, "zipread (%s)\n", filename);
+        return (0);
+    }
+    if ((fd = memfd_create(filename, MFD_CLOEXEC)) < 0)
+    {
+        fprintf(stderr, "memfd_create (%s)\n", filename);
+        t_freebytes(buf, length);
+        return (0);
+    }
+    long res = write(fd, buf, length);
+    t_freebytes(buf, length);
+    if (res < 0)
+    {
+        fprintf(stderr, "write (memfd): ");
+        close(fd);
+        return (0);
+    }
+    snprintf(filename, MAXPDSTRING-1, "/proc/self/fd/%d", fd);
+    filename[MAXPDSTRING-1] = 0;
+    return (fd);
+}
+#endif
 
 void class_set_extern_dir(t_symbol *s);
 
@@ -258,6 +292,9 @@ gotone:
         SetDllDirectory(NULL); /* reset DLL dir to nothing */
     }
 #elif defined(HAVE_LIBDL) || defined(__FreeBSD__)
+    char *zip = strstr(filename, "!//");
+    if (zip)
+        sys_zipmemfd(filename, zip);
     dlobj = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
     if (!dlobj)
     {
