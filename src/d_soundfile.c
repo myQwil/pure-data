@@ -26,6 +26,7 @@ objects use Posix-like threads.  */
 #include <limits.h>
 
 #include "m_pd.h"
+#include "s_stuff.h"
 
 #define MAXSFCHANS 64
 
@@ -479,11 +480,21 @@ badheader:
 int open_soundfile(const char *dirname, const char *filename,
     t_soundfile_info *p_info, long skipframes)
 {
-    char buf[OBUFSIZE], *bufptr;
+    char buf[OBUFSIZE], *bufptr, *zip;
     int fd, sf_fd;
     fd = open_via_path(dirname, filename, "", buf, &bufptr, MAXPDSTRING, 1);
     if (fd < 0)
         return (-1);
+    if (zip = strstr(dirname, "!//"))
+    {
+        sys_close(fd);
+        snprintf(buf, OBUFSIZE-1, "%s/%s", dirname, filename);
+        buf[OBUFSIZE-1] = 0;
+        zip = buf + (zip - dirname);
+        int memfd = sys_zipmemfd(buf, zip);
+        fd = sys_open(buf, 0);
+        sys_close(memfd);
+    }
     sf_fd = open_soundfile_via_fd(fd, p_info, skipframes);
     if (sf_fd < 0)
         sys_close(fd);
