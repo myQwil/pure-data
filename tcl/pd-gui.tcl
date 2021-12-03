@@ -299,7 +299,7 @@ proc init_for_platform {} {
             # the tk_getOpenFile dialog once, otherwise it will not work)
             catch {tk_getOpenFile -with-invalid-argument}
             set ::tk::dialog::file::showHiddenBtn 1
-            set ::tk::dialog::file::showHiddenVar 0
+            set ::tk::dialog::file::showHiddenVar 1
             # set file types that open/save recognize
             set ::filetypes \
                 [list \

@@ -204,7 +204,7 @@ int sys_fontheight(int fontsize)
 }
 
 int sys_defaultfont;
-#define DEFAULTFONT 12
+#define DEFAULTFONT 16
 
 static t_patchlist * patchlist_append(t_patchlist *listwas,
     const char *files, const char *args)

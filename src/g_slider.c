@@ -671,7 +671,7 @@ static void *slider_new(t_symbol *s, int argc, t_atom *argv)
     t_slider *x = (t_slider *)iemgui_new(slider_class);
     int lilo = 0, steady = 1;
     int fs = x->x_gui.x_fontsize;
-    double min = 0.0, max = (double)(IEM_SL_DEFAULTSIZE-1);
+    double min = 0.0, max = 1.0;
     t_float v = 0;
     int w, h, ldx, ldy;
 

@@ -1206,8 +1206,7 @@ void canvas_atom(t_glist *gl, t_atomtype type,
         pd_vmess(&gl->gl_pd, gensym("editmode"), "i", 1);
         x->a_text.te_xpix = xpix;
         x->a_text.te_ypix = ypix;
-        x->a_text.te_width = (x->a_flavor == A_FLOAT ? 5 :
-            (x->a_flavor == A_SYMBOL ? 10 : 20));
+        x->a_text.te_width = 0;
         glist_add(gl, &x->a_text.te_g);
         glist_noselect(gl);
         glist_select(gl, &x->a_text.te_g);
