@@ -30,6 +30,7 @@ tcl/pd-gui
 *.o
 *.obj
 lib*.a
+build.log
 
 # libtool
 .deps
@@ -89,3 +90,9 @@ mac/build
 !libpd/Makefile
 !libpd/test_libpd/Makefile
 libpd/test_libpd/test_libpd
+
+# VSCode Folder
+.vscode
+
+# auto-generated layout files
+.directory
