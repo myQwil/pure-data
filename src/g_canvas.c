@@ -483,6 +483,25 @@ t_canvas *canvas_new(void *dummy, t_symbol *sel, int argc, t_atom *argv)
         env->ce_argv = THISGUI->i_newargv;
         env->ce_dollarzero = THISGUI->i_dollarzero++;
         env->ce_path = 0;
+
+            /* if it's the main patch in a zip,
+            add parent directory to search path */
+        const char *dir = env->ce_dir->s_name;
+        const char *name = THISGUI->i_newfilename->s_name;
+        int len = strlen(dir) - 4;
+        if (len >= 2 && !strcmp(dir+len, "!//.") && !strcmp(name, "main.pd"))
+        {
+            char zippath[MAXPDSTRING], *slash;
+            strcpy(zippath, dir);
+            for (int i = len-1; i > 0; i--)
+                if (zippath[i-1] == '/')
+            {
+                zippath[i] = 0;
+                env->ce_path = namelist_append(env->ce_path, zippath, 0);
+                break;
+            }
+        }
+
         THISGUI->i_newdirectory = &s_;
         THISGUI->i_newargc = 0;
         THISGUI->i_newargv = 0;
