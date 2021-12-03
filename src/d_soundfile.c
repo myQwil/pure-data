@@ -19,6 +19,9 @@ objects use Posix-like threads. */
 #include <stdio.h>
 #include <pthread.h>
 
+#include "m_pd.h"
+#include "s_stuff.h"
+
 /* Supported sample formats: LPCM (16 or 24 bit int) & 32 bit float */
 
 #define MAXSFCHANS 64
@@ -405,12 +408,24 @@ badheader:
 int open_soundfile_via_path(const char *dirname, const char *filename,
     t_soundfile *sf, size_t skipframes)
 {
-    char buf[MAXPDSTRING], *dummy;
+    char buf[MAXPDSTRING], *dummy, *zip;
     int fd, sf_fd;
     fd = open_via_path(dirname, filename, "", buf, &dummy, MAXPDSTRING, 1);
     if (fd < 0)
         return -1;
+    if (zip = strstr(dirname, "!//"))
+    {
+        sys_close(fd);
+        snprintf(buf, MAXPDSTRING-1, "%s/%s", dirname, filename);
+        buf[MAXPDSTRING-1] = 0;
+        zip = buf + (zip - dirname);
+        int memfd = sys_zipmemfd(buf, zip);
+        fd = sys_open(buf, 0);
+        sys_close(memfd);
+    }
     sf_fd = open_soundfile_via_fd(fd, sf, skipframes);
+    if (sf_fd < 0)
+        sys_close(fd);
     return sf_fd;
 }
 
