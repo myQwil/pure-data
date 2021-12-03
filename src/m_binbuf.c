@@ -1212,6 +1212,8 @@ int binbuf_write(const t_binbuf *x, const char *filename, const char *dir, int c
 {
     FILE *f = 0;
     char sbuf[WBUFSIZE], fbuf[MAXPDSTRING], *bp = sbuf, *ep = sbuf + WBUFSIZE;
+    char *zip, *zbuf;
+    size_t sizeloc;
     t_atom *ap;
     t_binbuf *y = 0;
     const t_binbuf *z = x;
@@ -1230,7 +1232,9 @@ int binbuf_write(const t_binbuf *x, const char *filename, const char *dir, int c
         z = y;
     }
 
-    if (!(f = sys_fopen(fbuf, "w")))
+    f = (zip = strstr(fbuf, "!//")) ?
+        open_memstream(&zbuf, &sizeloc) : sys_fopen(fbuf, "w");
+    if (!f)
         goto fail;
     for (ap = z->b_vec, indx = z->b_n; indx--; ap++)
     {
@@ -1271,7 +1275,13 @@ int binbuf_write(const t_binbuf *x, const char *filename, const char *dir, int c
 
     if (y)
         binbuf_free(y);
-    fclose(f);
+    if (zip)
+    {
+        sys_zipwrite(fbuf, zip+5, zbuf, sizeloc);
+        fclose(f);
+        t_freebytes(zbuf, sizeloc);
+    }
+    else fclose(f);
     return (0);
 fail:
     if (y)
