@@ -72,6 +72,7 @@ proc ::pd_bindings::global_bindings {} {
     bind_capslock all $::modifier-Key w {::pd_bindings::window_close %W}
     bind_capslock all $::modifier-Key x {menu_send %W cut}
     bind_capslock all $::modifier-Key z {menu_undo}
+    bind all <$::modifier-Key-grave>    {menu_toggle_editmode}
     bind all <$::modifier-Key-1>        {::pd_menucommands::scheduleAction menu_send_float %W obj 0}
     bind all <$::modifier-Key-2>        {::pd_menucommands::scheduleAction menu_send_float %W msg 0}
     bind all <$::modifier-Key-3>        {::pd_menucommands::scheduleAction menu_send_float %W floatatom 0}
