@@ -47,7 +47,17 @@ static int strtoi(const char *s, char **end)
     return neg ? -n : n;
 }
 
+    /* returns the start of a valid dollar or dollsym */
+static inline const char *str_dollar(const char *s)
+{
+    for (; (s = strchr(s, '$')); ++s)
+        if (is_digit(s[1]))
+            break;
+    return s;
+}
 
+
+/* ------------------------ binbuf ------------------------ */
 struct _binbuf
 {
     int b_n;
@@ -420,8 +430,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                     usestr = buf;
                 }
                 else usestr = str;
-                if (dollar || (usestr== str && (str2 = strchr(usestr, '$')) &&
-                    is_digit(str2[1])))
+                if (dollar || (usestr == str && (str2 = str_dollar(usestr))))
                 {
                     int dollsym = 0;
                     if (*usestr != '$')
@@ -986,7 +995,7 @@ static t_binbuf *binbuf_convert(const t_binbuf *oldb, int maxtopd)
     t_atom *vec = oldb->b_vec;
     t_int n = oldb->b_n, nextindex, stackdepth = 0, stack[MAXSTACK] = {0},
         nobj = 0, gotfontsize = 0;
-	int i;
+    int i;
     t_atom outmess[MAXSTACK], *nextmess;
     t_float fontsize = 10;
     if (!maxtopd)
