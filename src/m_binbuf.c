@@ -46,6 +46,15 @@ static int strtoi(const char *s, char **end)
     return neg ? -n : n;
 }
 
+    /* checks a dollar string's type */
+static inline t_atomtype dlr_type(const char *s)
+{
+    if (*s++ != '$')
+        return A_DOLLSYM;
+    while (is_digit(*s)) ++s;
+    return (*s == '\0' ? A_DOLLAR : A_DOLLSYM);
+}
+
     /* returns the start of a valid dollar or dollsym */
 static const char *str_dollar(const char *s)
 {
@@ -204,12 +213,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                 was. */
             else if (dollar)
             {
-                if (buf[0] != '$')
-                    dollar = 0;
-                for (bufp = buf+1; *bufp; bufp++)
-                    if (!is_digit(*bufp))
-                        dollar = 0;
-                if (dollar)
+                if (dlr_type(buf) == A_DOLLAR)
                     SETDOLLAR(ap, strtoi(buf+1, NULL));
                 else SETDOLLSYM(ap, gensym(buf));
             }
@@ -430,16 +434,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                 else usestr = str;
                 if (dollar || (usestr == str && (str2 = str_dollar(usestr))))
                 {
-                    int dollsym = 0;
-                    if (*usestr != '$')
-                        dollsym = 1;
-                    else for (str2 = usestr + 1; *str2; str2++)
-                        if (!is_digit(*str2))
-                    {
-                        dollsym = 1;
-                        break;
-                    }
-                    if (dollsym)
+                    if (dlr_type(usestr) == A_DOLLSYM)
                         SETDOLLSYM(ap, usestr == str ?
                             argv->a_w.w_symbol : gensym(usestr));
                     else SETDOLLAR(ap, strtoi(usestr+1, NULL));
