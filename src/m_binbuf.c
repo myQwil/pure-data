@@ -56,6 +56,7 @@ typedef struct _slice
     int s_size;
     const char *s_bgn;
     const char *s_end;
+    t_symbol *s_sep;
     t_atom s_atom;
 } t_slice;
 
@@ -67,6 +68,21 @@ static inline t_slice *slice_new(const char *s, int ac)
     if (*end == ':') {
         int stop = strtoi(++end, &end);
         int step = (*end == ':') ? strtoi(++end, &end) : 1;
+
+        t_symbol *sep;
+        if (*end == ':') { // generate symbol for separator
+            const char *brac = strchr(++end, ']');
+            if (!brac) return NULL;
+
+            char buf[MAXPDSTRING/2];
+            int len = brac - end;
+            if (len) {
+                strncpy(buf, end, len);
+                buf[len] = '\0';
+                sep = gensym(buf);
+            } else sep = &s_;
+            end += len;
+        } else sep = gensym(" ");
         if (*end++ != ']')
             return NULL;
 
@@ -93,7 +109,7 @@ static inline t_slice *slice_new(const char *s, int ac)
         }
         t_slice *slice = getbytes(sizeof(t_slice));
         *slice = (t_slice){ .s_start=start, .s_stop=stop, .s_step=step,
-            .s_size=size, .s_bgn=bgn, .s_end=end, .s_atom={0, {0}} };
+            .s_size=size, .s_bgn=bgn, .s_end=end, .s_sep=sep, .s_atom={0, {0}} };
         return slice;
     }
     else return NULL;
@@ -124,9 +140,14 @@ static inline int dlr_bracket(const char **sp)
             else return 0;
         }
         while (is_digit(*s)) ++s;
-        if (*s == ':' && cons < 2)
-            ++s, ++cons;
-        else break;
+        if (*s == ':') {
+            if (cons < 2)
+                ++s, ++cons;
+            else { // separator comes after a third cons
+                s = strchr(s+1, ']');
+                break;
+            }
+        } else break;
     }
     *sp = s+1;
     return (*s == ']' ? (cons ? A_DOLLSLICE : A_DOLLBRAC) : 0);
@@ -776,7 +797,8 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 t_slice *slice = slice_new(s, argc);
                 if (slice)
                 {
-                    n += slice->s_size - 1;
+                    if (*slice->s_sep->s_name == ' ')
+                        n += slice->s_size - 1;
                     if (ad < n)
                         ad = n;
                     slice->s_atom = *a;
@@ -977,16 +999,35 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                     SETSYMBOL(msp, slice->s_atom.a_w.w_symbol);
                     ac--, msp++, nargs++;
                 }
-                else if (bare)
-                    for (; size--; i += step, ac--, msp++, nargs++)
-                        *msp = argv[i - 1];
-                else for (; size--; i += step, ac--, msp++, nargs++)
+                else if (*slice->s_sep->s_name != ' ')
                 {
+                    t_symbol *sep = binbuf_realizedollsym(slice->s_sep,
+                        argc, argv, target == &pd_objectmaker);
+                    int next = 0;
                     buf[0] = '\0', bp = buf;
                     if (pre) bp = stpcpy(bp, pre->s_name);
-                    atom_string(&argv[i - 1], bp, MAXPDSTRING - (bp - buf));
+                    for (; size--; i += step, bp += strlen(bp), next = 1)
+                    {
+                        if (next) bp = stpcpy(bp, sep->s_name);
+                        atom_string(&argv[i - 1], bp, MAXPDSTRING - (bp - buf));
+                    }
                     if (suf) strcat(bp, suf->s_name);
                     SETSYMBOL(msp, gensym(buf));
+                    msp++, ac--, nargs++;
+                }
+                else
+                {
+                    if (bare)
+                        for (; size--; i += step, ac--, msp++, nargs++)
+                            *msp = argv[i - 1];
+                    else for (; size--; i += step, ac--, msp++, nargs++)
+                    {
+                        buf[0] = '\0', bp = buf;
+                        if (pre) bp = stpcpy(bp, pre->s_name);
+                        atom_string(&argv[i - 1], bp, MAXPDSTRING - (bp - buf));
+                        if (suf) strcat(bp, suf->s_name);
+                        SETSYMBOL(msp, gensym(buf));
+                    }
                 }
                 freebytes(slice, sizeof(t_slice));
                 at++;
