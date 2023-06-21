@@ -30,6 +30,7 @@
 #include "s_utf8.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <zip.h>
 
 #ifdef _LARGEFILE64_SOURCE
 # define open  open64
@@ -255,6 +256,38 @@ void sys_setextrapath(const char *p)
     STUFF->st_staticpath = namelist_append(STUFF->st_staticpath, p, 0);
 }
 
+    /* Fills a buffer with the uncompressed data of a zip entry.
+    Sending a length < 0 means that the buffer has not been allocated yet.
+    Sending a length of 0 means that we only want to check if the entry exists.
+    Returns the entry's uncompressed size on success (or 0 if we're only checking).
+    Returns -1 on any error, including if the entry was not found. */
+int64_t sys_zipread(char *path, char *fname, char **buf, int64_t length)
+{
+    int err;
+    zip_t *z;
+    if (!(z = zip_open(path, ZIP_RDONLY, &err)))
+        return (-1);
+
+    zip_stat_t  sb;
+    zip_file_t *zf;
+    err = zip_stat(z, fname, ZIP_STAT_SIZE, &sb);
+    if (!err && length && (zf = zip_fopen(z, fname, 0)))
+    {
+        if (length  < 0      ?  !(*buf = t_getbytes(sb.size))
+         : (sb.size > length && !(*buf = t_resizebytes(*buf, length, sb.size))))
+        {
+            zip_fclose(zf);
+            zip_discard(z);
+            return (-1);
+        }
+        length = zip_fread(zf, *buf, sb.size);
+        zip_fclose(zf);
+    }
+    zip_discard(z);
+    strncpy(fname-5, "!//./", 5);
+    return (err ? err : length);
+}
+
     /* try to open a file in the directory "dir", named "name""ext",
     for reading.  "Name" may have slashes.  The directory is copied to
     "dirresult" which must be at least "size" bytes.  "nameresult" is set
@@ -267,7 +300,7 @@ int sys_trytoopenit(const char *dir, const char *name, const char* ext,
     int okgui)
 {
     int fd;
-    char buf[MAXPDSTRING];
+    char buf[MAXPDSTRING], *zip;
     if (strlen(dir) + strlen(name) + strlen(ext) + 4 > size)
         return (-1);
     sys_expandpath(dir, buf, MAXPDSTRING);
@@ -279,6 +312,8 @@ int sys_trytoopenit(const char *dir, const char *name, const char* ext,
 
     DEBUG(post("looking for %s",dirresult));
         /* see if we can open the file for reading */
+    if (zip = strstr(dirresult, "!//"))
+        strcpy(zip, ".pdz");
     if ((fd=sys_open(dirresult, O_RDONLY)) >= 0)
     {
             /* in unix, further check that it's not a directory */
@@ -297,6 +332,11 @@ int sys_trytoopenit(const char *dir, const char *name, const char* ext,
         else
 #endif
         {
+            if (zip && sys_zipread(dirresult, zip+5, 0, 0) < 0)
+            {
+                close(fd);
+                return (-1);
+            }
             char *slash;
             if (okgui)
                 logpost(NULL, PD_VERBOSE, "tried %s and succeeded", dirresult);
