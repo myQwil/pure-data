@@ -46,17 +46,76 @@ static int strtoi(const char *s, char **end)
     return neg ? -n : n;
 }
 
+
+/* -------------------------- list slice -------------------------- */
+typedef struct _slice
+{
+    int s_start;
+    int s_stop;
+    int s_step;
+    int s_size;
+    t_atom s_atom;
+} t_slice;
+
+static inline t_slice *slice_new(const char *s, int ac)
+{
+    char *end;
+    int start = strtoi(s+2, &end);
+    if (*end == ':') {
+        int stop = strtoi(++end, &end);
+        int step = (*end == ':') ? strtoi(++end, &end) : 1;
+        if (*end++ != ']')
+            return NULL;
+
+        int size = 0, ac1 = ac + 1;
+        if (!step) step = 1;
+        if (step < 0) {
+            if (start == 0 || start > ac) start = ac;
+            else if (start < 0 && (start += ac1) < 0) start = 0;
+
+            if (stop > ac) stop = ac;
+            else if (stop < 0 && (stop += ac1) < 0) stop = 0;
+
+            if (start > stop)
+                size = (start - stop - 1) / -step + 1;
+        } else {
+            if (start == 0 || (start < 0 && (start += ac1) < 0)) start = 1;
+            else if (start > ac1) start = ac1;
+
+            if (stop == 0 || stop > ac1) stop = ac1;
+            else if (stop < 0 && (stop += ac1) < 0) stop = 1;
+
+            if (stop > start)
+                size = (stop - start - 1) / step + 1;
+        }
+        t_slice *slice = getbytes(sizeof(t_slice));
+        *slice = (t_slice){ .s_start=start, .s_stop=stop, .s_step=step,
+            .s_size=size, .s_atom={0, {0}} };
+        return slice;
+    }
+    else return NULL;
+}
+
+
+/* ------------------------ dollar helpers ------------------------ */
+
     /* checks if a dollar string has valid bracket syntax */
 static inline int dlr_bracket(const char **sp)
 {
     const char *s = *sp+1;
-    if (*s == '-') {
-        if (is_digit(s[1])) s += 2;
-        else return 0;
+    int cons = 0;
+    for (;;) {
+        if (*s == '-') {
+            if (is_digit(s[1])) s += 2;
+            else return 0;
+        }
+        while (is_digit(*s)) ++s;
+        if (*s == ':' && cons < 2)
+            ++s, ++cons;
+        else break;
     }
-    while (is_digit(*s)) ++s;
     *sp = s+1;
-    return (*s == ']' ? A_DOLLBRAC : 0);
+    return (*s == ']' ? (cons ? A_DOLLSLICE : A_DOLLBRAC) : 0);
 }
 
     /* checks a dollar string's type */
@@ -251,6 +310,9 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                 case A_DOLLBRAC:
                     SETDOLLBRAC(ap, strtoi(buf+2, NULL));
                     break;
+                case A_DOLLSLICE:
+                    SETDOLLSLICE(ap, gensym(buf));
+                    break;
                 default:
                     SETDOLLSYM(ap, gensym(buf));
                 }
@@ -395,6 +457,7 @@ void binbuf_addbinbuf(t_binbuf *x, const t_binbuf *y)
             SETSYMBOL(ap, gensym(tbuf));
             break;
         case A_DOLLSYM:
+        case A_DOLLSLICE:
             atom_string(ap, tbuf, MAXPDSTRING);
             SETSYMBOL(ap, gensym(tbuf));
             break;
@@ -483,6 +546,10 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                         break;
                     case A_DOLLBRAC:
                         SETDOLLBRAC(ap, strtoi(usestr+2, NULL));
+                        break;
+                    case A_DOLLSLICE:
+                        SETDOLLSLICE(ap, usestr == str ?
+                            argv->a_w.w_symbol : gensym(usestr));
                         break;
                     default:
                         SETDOLLSYM(ap, usestr == str ?
@@ -658,13 +725,41 @@ done:
 
 void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
 {
-    t_atom smallstack[SMALLMSG], *mstack, *msp;
-    const t_atom *at = x->b_vec;
-    int ac = x->b_n;
-    int nargs, maxnargs = 0;
-    t_pd *initial_target = target;
+    t_atom *at = x->b_vec;
+    int ac = x->b_n, ad = 0;
+    {   /* increase args to account for slices */
+        int i = ac, n = 0;
+        for (t_atom *a = at; i--; a++)
+        {
+            const char *s = NULL;
+            switch (a->a_type)
+            {
+            case A_SEMI:
+            case A_COMMA:
+                n = 0;
+                break;
+            case A_DOLLSLICE:
+                s = a->a_w.w_symbol->s_name;
+            {
+                t_slice *slice = slice_new(s, argc);
+                if (slice)
+                {
+                    n += slice->s_size - 1;
+                    if (ad < n)
+                        ad = n;
+                    slice->s_atom = *a;
+                    a->a_w.w_symbol = (t_symbol *)slice;
+                }
+            }
+            default: break;
+            }
+        }
+    }
 
-    if (ac <= SMALLMSG)
+    t_atom smallstack[SMALLMSG], *mstack, *msp;
+    t_pd *initial_target = target;
+    int nargs, maxnargs = 0;
+    if (ac + ad <= SMALLMSG)
         mstack = smallstack;
     else
     {
@@ -677,7 +772,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
             destination in the message, only because the original "target"
             points there. */
         if (target == &pd_objectmaker)
-            maxnargs = ac;
+            maxnargs = ac + ad;
         else
         {
             int i, j = (target ? 0 : -1);
@@ -690,6 +785,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 else if (++j > maxnargs)
                     maxnargs = j;
             }
+            maxnargs += ad;
         }
         if (maxnargs <= SMALLMSG)
             mstack = smallstack;
@@ -699,11 +795,12 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
             at once.  This turned out to run slower in a simple benchmark
             I tried, perhaps because the extra memory allocation
             hurt the cache hit rate. */
-        maxnargs = ac;
+        maxnargs = ac + ad;
         ALLOCA(t_atom, mstack, maxnargs, HUGEMSG);
 #endif
 
     }
+    ac += ad;
     msp = mstack;
     while (1)
     {
@@ -715,8 +812,10 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
             while (ac && (at->a_type == A_SEMI || at->a_type == A_COMMA))
                 ac--,  at++;
             if (!ac) break;
-            if (at->a_type == A_DOLLAR || at->a_type == A_DOLLBRAC)
+            switch (at->a_type)
             {
+            case A_DOLLAR:
+            case A_DOLLBRAC:
                 if (at->a_w.w_index <= 0 || at->a_w.w_index > argc)
                 {
                     pd_error(initial_target, "$%d: not enough arguments supplied",
@@ -730,9 +829,8 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                     goto cleanup;
                 }
                 else s = argv[at->a_w.w_index-1].a_w.w_symbol;
-            }
-            else if (at->a_type == A_DOLLSYM)
-            {
+                break;
+            case A_DOLLSYM:
                 if (!(s = binbuf_realizedollsym(at->a_w.w_symbol,
                     argc, argv, 0)))
                 {
@@ -740,8 +838,9 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                         at->a_w.w_symbol->s_name);
                     goto cleanup;
                 }
+                break;
+            default: s = atom_getsymbol(at);
             }
-            else s = atom_getsymbol(at);
             if (!(target = s->s_thing))
             {
                 pd_error(initial_target, "%s: no such object ", s->s_name);
@@ -822,6 +921,25 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 }
                 else SETSYMBOL(msp, s9);
                 break;
+            }
+            case A_DOLLSLICE:
+            {
+                t_slice *slice = (t_slice *)at->a_w.w_symbol;
+                *at = slice->s_atom;
+
+                int size=slice->s_size, step=slice->s_step, i=slice->s_start;
+                if (size < 1)
+                {
+                    pd_error(target, "%s: invalid slice", at->a_w.w_symbol->s_name);
+                    SETSYMBOL(msp, slice->s_atom.a_w.w_symbol);
+                    ac--, msp++, nargs++;
+                }
+                else for (; size--; i += step, ac--, msp++, nargs++)
+                    *msp = argv[i - 1];
+
+                freebytes(slice, sizeof(t_slice));
+                at++;
+                continue;
             }
             default:
                 bug("bad item in binbuf");
@@ -1113,17 +1231,19 @@ static t_binbuf *binbuf_convert(const t_binbuf *oldb, int maxtopd)
                 /* dollar signs in file translate to symbols */
             for (i = 0; i < natom; i++)
             {
-                if (nextmess[i].a_type == A_DOLLAR)
+                char buf[100];
+                switch (nextmess[i].a_type)
                 {
-                    char buf[100];
+                case A_DOLLAR:
+                case A_DOLLBRAC:
                     sprintf(buf, "$%d", nextmess[i].a_w.w_index);
                     SETSYMBOL(nextmess+i, gensym(buf));
-                }
-                else if (nextmess[i].a_type == A_DOLLSYM)
-                {
-                    char buf[100];
+                    break;
+                case A_DOLLSYM:
+                case A_DOLLSLICE:
                     sprintf(buf, "%s", nextmess[i].a_w.w_symbol->s_name);
                     SETSYMBOL(nextmess+i, gensym(buf));
+                default: break;
                 }
             }
             if (!strcmp(first, "#N"))
