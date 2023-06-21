@@ -227,7 +227,8 @@ typedef enum
     A_DOLLSYM,
     A_GIMME,
     A_CANT,
-    A_DOLLBRAC
+    A_DOLLBRAC,
+    A_DOLLSLICE
 }  t_atomtype;
 
 #define A_DEFSYMBOL A_DEFSYM    /* better name for this */
@@ -380,6 +381,8 @@ EXTERN void *resizebytes(void *x, size_t oldsize, size_t newsize);
 #define SETDOLLBRAC(atom, n) ((atom)->a_type = A_DOLLBRAC, \
     (atom)->a_w.w_index = (n))
 #define SETDOLLSYM(atom, s) ((atom)->a_type = A_DOLLSYM, \
+    (atom)->a_w.w_symbol= (s))
+#define SETDOLLSLICE(atom, s) ((atom)->a_type = A_DOLLSLICE, \
     (atom)->a_w.w_symbol= (s))
 
 EXTERN t_float atom_getfloat(const t_atom *a);
