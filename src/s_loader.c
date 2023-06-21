@@ -348,7 +348,7 @@ static int sys_do_load_lib(t_canvas *canvas, const char *objectname,
     const char *classname, *cnameptr;
     void *dlobj;
     t_xxx makeout = NULL;
-    int i, hexmunge = 0, fd;
+    int i, hexmunge = 0, tilde = 0, fd;
         /* NULL-path is only used as a last resort,
            but we have already tried all paths */
     if(!path)return (0);
@@ -371,6 +371,7 @@ static int sys_do_load_lib(t_canvas *canvas, const char *objectname,
         {
             strcpy(symname+i, "_tilde");
             i += strlen(symname+i);
+            tilde = 1;
         }
         else /* anything you can't put in a C symbol is sprintf'ed in hex */
         {
@@ -382,6 +383,13 @@ static int sys_do_load_lib(t_canvas *canvas, const char *objectname,
     symname[i] = 0;
     if (hexmunge)
     {
+        if (tilde)
+        {
+            i -= 6;
+            filename[i] = '~';
+        }
+        strncpy(filename, symname, i);
+        filename[i+tilde] = 0;
         memmove(symname+6, symname, strlen(symname)+1);
         strncpy(symname, "setup_", 6);
     }
@@ -393,7 +401,9 @@ static int sys_do_load_lib(t_canvas *canvas, const char *objectname,
         /* try looking in the path for (objectname).(sys_dllextent) ... */
     for(dllextent=sys_get_dllextensions(); *dllextent; dllextent++)
     {
-        if ((fd = sys_trytoopenone(path, objectname, *dllextent,
+        if ((hexmunge && (fd = sys_trytoopenone(path, filename, *dllextent,
+            dirbuf, &nameptr, MAXPDSTRING, 1)) >= 0)
+         || (fd = sys_trytoopenone(path, objectname, *dllextent,
             dirbuf, &nameptr, MAXPDSTRING, 1)) >= 0)
             if(sys_do_load_lib_from_file(fd, objectname, dirbuf, nameptr, symname))
                 return 1;
