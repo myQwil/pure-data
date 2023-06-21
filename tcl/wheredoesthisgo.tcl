@@ -22,7 +22,7 @@ proc open_file {filename} {
         return
     }
     set ::fileopendir $directory
-    if {[regexp -nocase -- "\.(pd|pat|mxt)$" $filename]} {
+    if {[regexp -nocase -- "\.(pd|pdz|pat|mxt)$" $filename]} {
         ::pdtk_canvas::started_loading_file [format "%s/%s" $basename $filename]
         pdsend "pd open [enquote_path $basename] [enquote_path $directory]"
         # now this is done in pd_guiprefs
