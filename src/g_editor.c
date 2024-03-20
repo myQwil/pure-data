@@ -57,11 +57,11 @@ void canvas_setgraph(t_glist *x, int flag, int nogoprect);
 /* ------------------------ managing the selection ----------------- */
 void glist_deselectline(t_glist *x);
 
-static void _editor_selectlinecolor(t_glist*x, const char*color)
+static void _editor_selectlinecolor(t_glist*x, int color)
 {
     char tag[128];
     sprintf(tag, "l%p", x->gl_editor->e_selectline_tag);
-    pdgui_vmess(0, "crs rs",
+    pdgui_vmess(0, "crs rk",
         x, "itemconfigure", tag,
         "-fill", color);
 
@@ -79,7 +79,7 @@ void glist_selectline(t_glist *x, t_outconnect *oc, int index1,
         x->gl_editor->e_selectline_index2 = index2;
         x->gl_editor->e_selectline_inno = inno;
         x->gl_editor->e_selectline_tag = oc;
-        _editor_selectlinecolor(x, "blue");
+        _editor_selectlinecolor(x, PD_COLOR_SELECT);
     }
 }
 
@@ -88,7 +88,7 @@ void glist_deselectline(t_glist *x)
     if (x->gl_editor)
     {
         x->gl_editor->e_selectedline = 0;
-        _editor_selectlinecolor(x, "black");
+        _editor_selectlinecolor(x, PD_COLOR_FG);
     }
 }
 
@@ -2413,10 +2413,11 @@ static void canvas_doclick(t_canvas *x, int xpos, int ypos, int which,
                         x->gl_editor->e_xwas = xout;
                         x->gl_editor->e_ywas = y2;
                         pdgui_vmess("::pdtk_canvas::cords_to_foreground", "ci", x, 0);
-                        pdgui_vmess(0, "crr iiii ri rs",
+                        pdgui_vmess(0, "crr iiii ri rk rs",
                             x, "create", "line",
                             x->gl_editor->e_xwas,x->gl_editor->e_ywas, xpos,ypos,
                             "-width", (issignal ? 2 : 1) * x->gl_zoom,
+                            "-fill", PD_COLOR_FG,
                             "-tags", "x");
                     }
                     else canvas_setcursor(x, CURSOR_EDITMODE_CONNECT);
@@ -2560,9 +2561,10 @@ static void canvas_doclick(t_canvas *x, int xpos, int ypos, int which,
     if (doit)
     {
         if (!shiftmod) glist_noselect(x);
-        pdgui_vmess(0, "crr iiii rs",
+        pdgui_vmess(0, "crr iiii rk rs",
             x, "create", "rectangle",
             xpos,ypos, xpos,ypos,
+            "-outline", PD_COLOR_FG,
             "-tags", "x");
         x->gl_editor->e_xwas = xpos;
         x->gl_editor->e_ywas = ypos;
@@ -2630,10 +2632,11 @@ static int tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin
                              ((x22-x21-iow) * nin)/(ninlets-1) : 0)
                 + iom;
             ly2 = y21;
-            pdgui_vmess(0, "crr iiii ri rS",
+            pdgui_vmess(0, "crr iiii ri rk rS",
                 glist_getcanvas(x), "create", "line",
                 lx1,ly1, lx2,ly2,
                 "-width", (obj_issignaloutlet(src, nout) ? 2 : 1) * x->gl_zoom,
+                "-fill", PD_COLOR_FG,
                 "-tags", 2, tags);
             canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
                     canvas_getindex(x, &src->ob_g), nout,
@@ -4429,10 +4432,11 @@ void canvas_connect(t_canvas *x, t_floatarg fwhoout, t_floatarg foutno,
         char tag[128];
         char*tags[] = {tag, "cord"};
         sprintf(tag, "l%p", oc);
-        pdgui_vmess(0, "crr iiii ri rS",
+        pdgui_vmess(0, "crr iiii ri rk rS",
             glist_getcanvas(x), "create", "line",
             0, 0, 0, 0,
             "-width", (obj_issignaloutlet(objsrc, outno) ? 2 : 1) * x->gl_zoom,
+            "-fill", PD_COLOR_FG,
             "-tags", 2, tags);
         canvas_fixlinesfor(x, objsrc);
     }

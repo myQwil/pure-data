@@ -926,10 +926,10 @@ static void iemgui_draw_iolets(t_iemgui*x, t_glist*glist, int old_snd_rcv_flags)
     sprintf(tag, "%pOUT%d", x, 0);
     pdgui_vmess(0, "crs", canvas, "delete", tag);
     if(!x->x_fsf.x_snd_able) {
-        pdgui_vmess(0, "crr iiii rs rS",
+        pdgui_vmess(0, "crr iiii rk rk rS",
             canvas, "create", "rectangle",
             xpos, ypos + x->x_h + zoom - ioh, xpos + iow, ypos + x->x_h,
-            "-fill", "black",
+            "-fill", PD_COLOR_IO, "-outline", PD_COLOR_FG,
             "-tags", 2, tags);
         /* keep label above outlet */
         pdgui_vmess(0, "crss", canvas, "lower", tag, tag_label);
@@ -939,10 +939,10 @@ static void iemgui_draw_iolets(t_iemgui*x, t_glist*glist, int old_snd_rcv_flags)
     sprintf(tag, "%pIN%d", x, 0);
     pdgui_vmess(0, "crs", canvas, "delete", tag);
     if(!x->x_fsf.x_rcv_able) {
-        pdgui_vmess(0, "crr iiii rs rS",
+        pdgui_vmess(0, "crr iiii rk rk rS",
             canvas, "create", "rectangle",
             xpos, ypos, xpos + iow, ypos - zoom + ioh,
-            "-fill", "black",
+            "-fill", PD_COLOR_IO, "-outline", PD_COLOR_FG,
             "-tags", 2, tags);
         /* keep label above inlet */
         pdgui_vmess(0, "crss", canvas, "lower", tag, tag_label);
@@ -1050,9 +1050,9 @@ t_iemgui *iemgui_new(t_class*cls)
     iem_inttosymargs(&x->x_isa, 0);
     iem_inttofstyle(&x->x_fsf, 0);
 
-    x->x_bcol = 0xFCFCFC;
-    x->x_fcol = 0x00;
-    x->x_lcol = 0x00;
+    x->x_bcol = PD_COLOR_BG;
+    x->x_fcol = PD_COLOR_FG;
+    x->x_lcol = PD_COLOR_LBL;
 
     return x;
 }
