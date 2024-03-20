@@ -768,10 +768,10 @@ void canvas_drawredrect(t_canvas *x, int doit)
             x2 = x1 + x->gl_zoom * x->gl_pixwidth,
             y1 = x->gl_zoom * x->gl_ymargin,
             y2 = y1 + x->gl_zoom * x->gl_pixheight;
-        pdgui_vmess(0, "crr iiiiiiiiii rr ri rr rr",
+        pdgui_vmess(0, "crr iiiiiiiiii rk ri rr rr",
             glist_getcanvas(x), "create", "line",
             x1,y1, x1,y2, x2,y2, x2,y1, x1,y1,
-            "-fill", "#ff8080",
+            "-fill", 0xFF8080,
             "-width", x->gl_zoom,
             "-capstyle", "projecting",
             "-tags", "GOP"); /* better: "-tags", 1, &"GOP" */
@@ -943,10 +943,11 @@ static void canvas_drawlines(t_canvas *x)
         while ((oc = linetraverser_next(&t)))
         {
             sprintf(tag, "l%p", oc);
-            pdgui_vmess(0, "crr iiii ri rS",
+            pdgui_vmess(0, "crr iiii ri rk rS",
                 glist_getcanvas(x), "create", "line",
                 t.tr_lx1,t.tr_ly1, t.tr_lx2,t.tr_ly2,
                 "-width", (outlet_getsymbol(t.tr_outlet) == &s_signal ? 2:1) * x->gl_zoom,
+                "-fill", PD_COLOR_FG,
                 "-tags", 2, tags);
         }
     }

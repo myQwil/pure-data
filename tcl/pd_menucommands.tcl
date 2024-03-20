@@ -251,7 +251,8 @@ proc ::pd_menucommands::menu_aboutpd {} {
         wm group .aboutpd .
         .aboutpd configure -menu $::dialog_menubar
         text .aboutpd.text -relief flat -borderwidth 0 -highlightthickness 0 \
-            -yscrollcommand ".aboutpd.scroll set" -background white
+            -yscrollcommand ".aboutpd.scroll set" \
+            -background black -foreground white
         scrollbar .aboutpd.scroll -command ".aboutpd.text yview"
         pack .aboutpd.scroll -side right -fill y
         pack .aboutpd.text -side left -fill both -expand 1
