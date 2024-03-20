@@ -102,17 +102,17 @@ static void vu_draw_io(t_vu* x, t_glist* glist, int old_snd_rcv_flags)
     if(!snd_able)
     {
         sprintf(tag_n, "%pOUT%d", x, 0);
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rS", canvas, "create", "rectangle",
             xpos - hmargin, ypos + x->x_gui.x_h + vmargin + zoom - ioh,
             xpos - hmargin + iow, ypos + x->x_gui.x_h + vmargin,
-            "-fill", "black",
+            "-fill", PD_COLOR_FG,
             "-tags", 3, tags);
 
         sprintf(tag_n, "%pOUT%d", x, 1);
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rS", canvas, "create", "rectangle",
             xpos + x->x_gui.x_w + hmargin - iow, ypos + x->x_gui.x_h + vmargin + zoom - ioh,
             xpos + x->x_gui.x_w + hmargin, ypos + x->x_gui.x_h + vmargin,
-            "-fill", "black",
+            "-fill", PD_COLOR_FG,
             "-tags", 3, tags);
             /* keep label above outlets */
         pdgui_vmess(0, "crss", canvas, "lower", tag, tag_label);
@@ -123,17 +123,17 @@ static void vu_draw_io(t_vu* x, t_glist* glist, int old_snd_rcv_flags)
     if(!x->x_gui.x_fsf.x_rcv_able)
     {
         sprintf(tag_n, "%pIN%d", x, 0);
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rS", canvas, "create", "rectangle",
             xpos - hmargin, ypos - vmargin,
             xpos - hmargin + iow, ypos - vmargin - zoom + ioh,
-            "-fill", "black",
+            "-fill", PD_COLOR_FG,
             "-tags", 3, tags);
 
         sprintf(tag_n, "%pIN%d", x, 1);
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rS", canvas, "create", "rectangle",
             xpos + x->x_gui.x_w + hmargin - iow, ypos - vmargin,
             xpos + x->x_gui.x_w + hmargin, ypos - vmargin - zoom + ioh,
-            "-fill", "black",
+            "-fill", PD_COLOR_FG,
             "-tags", 3, tags);
             /* keep label above inlets */
         pdgui_vmess(0, "crss", canvas, "lower", tag, tag_label);
@@ -175,7 +175,7 @@ static void vu_draw_config(t_vu* x, t_glist* glist)
     sprintf(tag, "%pSCALE", x);
     pdgui_vmess(0, "crs rA rk", canvas, "itemconfigure", tag,
         "-font", 3, fontatoms,
-        "-fill", x->x_gui.x_fsf.x_selected ? IEM_GUI_COLOR_SELECTED : x->x_gui.x_lcol);
+        "-fill", x->x_gui.x_fsf.x_selected ? PD_COLOR_SELECT : x->x_gui.x_lcol);
     sprintf(tag, "%pRLED", x);
     pdgui_vmess(0, "crs ri", canvas, "itemconfigure", tag, "-width", ledw);
 
@@ -228,7 +228,7 @@ static void vu_draw_config(t_vu* x, t_glist* glist)
         xpos+x->x_gui.x_ldx * zoom, ypos+x->x_gui.x_ldy * zoom);
     pdgui_vmess(0, "crs rA rk", canvas, "itemconfigure", tag,
         "-font", 3, fontatoms,
-        "-fill", x->x_gui.x_fsf.x_selected ? IEM_GUI_COLOR_SELECTED : x->x_gui.x_lcol);
+        "-fill", x->x_gui.x_fsf.x_selected ? PD_COLOR_SELECT : x->x_gui.x_lcol);
     iemgui_dolabel(x, &x->x_gui, x->x_gui.x_lab, 1);
 
     x->x_updaterms = x->x_updatepeak = 1;
@@ -286,11 +286,11 @@ static void vu_draw_new(t_vu *x, t_glist *glist)
 static void vu_draw_select(t_vu* x,t_glist* glist)
 {
     t_canvas *canvas = glist_getcanvas(glist);
-    int col = IEM_GUI_COLOR_NORMAL;
+    int col = PD_COLOR_FG;
     int lcol = x->x_gui.x_lcol;
     char tag[128];
     if(x->x_gui.x_fsf.x_selected)
-        col = lcol = IEM_GUI_COLOR_SELECTED;
+        col = lcol = PD_COLOR_SELECT;
 
     sprintf(tag, "%pBASE", x);
     pdgui_vmess(0, "crs rk", canvas, "itemconfigure", tag, "-outline", col);
