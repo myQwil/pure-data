@@ -226,7 +226,8 @@ typedef enum
     A_DOLLAR,
     A_DOLLSYM,
     A_GIMME,
-    A_CANT
+    A_CANT,
+    A_DOLLBRAC
 }  t_atomtype;
 
 #define A_DEFSYMBOL A_DEFSYM    /* better name for this */
@@ -375,6 +376,8 @@ EXTERN void *resizebytes(void *x, size_t oldsize, size_t newsize);
 #define SETSYMBOL(atom, s) ((atom)->a_type = A_SYMBOL, \
     (atom)->a_w.w_symbol = (s))
 #define SETDOLLAR(atom, n) ((atom)->a_type = A_DOLLAR, \
+    (atom)->a_w.w_index = (n))
+#define SETDOLLBRAC(atom, n) ((atom)->a_type = A_DOLLBRAC, \
     (atom)->a_w.w_index = (n))
 #define SETDOLLSYM(atom, s) ((atom)->a_type = A_DOLLSYM, \
     (atom)->a_w.w_symbol= (s))
