@@ -51,15 +51,26 @@ static inline t_atomtype dlr_type(const char *s)
 {
     if (*s++ != '$')
         return A_DOLLSYM;
+    if (*s == '-') {
+        if (is_digit(s[1])) s += 2;
+        else return A_DOLLSYM;
+    }
     while (is_digit(*s)) ++s;
     return (*s == '\0' ? A_DOLLAR : A_DOLLSYM);
+}
+
+    /* checks if a dollar string has a valid index */
+inline int dlr_valid(const char *s)
+{
+    if (*s == '-') ++s;
+    return is_digit(*s);
 }
 
     /* returns the start of a valid dollar or dollsym */
 static const char *str_dollar(const char *s)
 {
     for (; (s = strchr(s, '$')); ++s)
-        if (is_digit(s[1]))
+        if (dlr_valid(s+1))
             break;
     return s;
 }
@@ -188,7 +199,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                         if (!digit) floatstate = -1;
                     }
                 }
-                if (!lastslash && c == '$' && (textp != etext && is_digit(*textp)))
+                if (!lastslash && c == '$' && (textp != etext && dlr_valid(textp)))
                         dollar = 1;
                 if (!slash) bufp++;
                 else if (lastslash)
@@ -422,7 +433,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                             slashed = 1;
                         else
                         {
-                            if (*sp2 == '$' && is_digit(sp2[1]))
+                            if (*sp2 == '$' && dlr_valid(sp2+1))
                                 dollar = 1;
                             *sp1++ = *sp2;
                             slashed = 0;
@@ -518,7 +529,7 @@ static int binbuf_expanddollsym(const char *s, char *buf, t_atom *dollar0,
         sprintf(buf, "$");
         return 0;
     }
-    else if (argno < 0 || argno > ac) /* undefined argument */
+    else if (argno < -ac || ac < argno) /* undefined argument */
     {
         if (!tonew)
             return 0;
@@ -526,6 +537,8 @@ static int binbuf_expanddollsym(const char *s, char *buf, t_atom *dollar0,
     }
     else        /* well formed; expand it */
     {
+        if (argno < 0)
+            argno += ac+1;
         const t_atom *dollarvalue = (argno ? &av[argno-1] : dollar0);
         if (dollarvalue->a_type == A_SYMBOL)
         {
@@ -707,7 +720,6 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
         nexttarget = target;
         while (1)
         {
-            t_symbol *s9;
             if (!ac) goto gotmess;
             switch (at->a_type)
             {
@@ -736,9 +748,13 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 *msp = *at;
                 break;
             case A_DOLLAR:
-                if (at->a_w.w_index > 0 && at->a_w.w_index <= argc)
-                    *msp = argv[at->a_w.w_index-1];
-                else if (at->a_w.w_index == 0)
+            {
+                int i = at->a_w.w_index;
+                if (i < 0)
+                    i += argc+1;
+                if (0 < i && i <= argc)
+                    *msp = argv[i-1];
+                else if (i == 0)
                     SETFLOAT(msp, canvas_getdollarzero());
                 else
                 {
@@ -746,14 +762,15 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                         SETFLOAT(msp, 0);
                     else
                     {
-                        pd_error(target, "$%d: argument number out of range",
-                            at->a_w.w_index);
+                        pd_error(target, "$%d: argument number out of range", i);
                         SETFLOAT(msp, 0);
                     }
                 }
                 break;
+            }
             case A_DOLLSYM:
-                s9 = binbuf_realizedollsym(at->a_w.w_symbol, argc, argv,
+            {
+                t_symbol *s9 = binbuf_realizedollsym(at->a_w.w_symbol, argc, argv,
                     target == &pd_objectmaker);
                 if (!s9)
                 {
@@ -762,6 +779,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 }
                 else SETSYMBOL(msp, s9);
                 break;
+            }
             default:
                 bug("bad item in binbuf");
                 goto broken;
