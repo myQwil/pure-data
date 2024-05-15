@@ -391,6 +391,7 @@ EXTERN void atom_string(const t_atom *a, char *buf, unsigned int bufsize);
 
 /* ------------------  binbufs --------------- */
 
+EXTERN int dlr_valid(const char *s);
 EXTERN t_binbuf *binbuf_new(void);
 EXTERN void binbuf_free(t_binbuf *x);
 EXTERN t_binbuf *binbuf_duplicate(const t_binbuf *y);
