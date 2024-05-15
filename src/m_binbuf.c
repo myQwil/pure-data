@@ -46,11 +46,28 @@ static int strtoi(const char *s, char **end)
     return neg ? -n : n;
 }
 
+    /* checks if a dollar string has valid bracket syntax */
+static inline int dlr_bracket(const char **sp)
+{
+    const char *s = *sp+1;
+    if (*s == '-') {
+        if (is_digit(s[1])) s += 2;
+        else return 0;
+    }
+    while (is_digit(*s)) ++s;
+    *sp = s+1;
+    return (*s == ']' ? A_DOLLBRAC : 0);
+}
+
     /* checks a dollar string's type */
 static inline t_atomtype dlr_type(const char *s)
 {
     if (*s++ != '$')
         return A_DOLLSYM;
+    if (*s == '[') {
+        t_atomtype type = dlr_bracket(&s);
+        return (type && *s == '\0' ? type : A_DOLLSYM);
+    }
     if (*s == '-') {
         if (is_digit(s[1])) s += 2;
         else return A_DOLLSYM;
@@ -62,6 +79,8 @@ static inline t_atomtype dlr_type(const char *s)
     /* checks if a dollar string has a valid index */
 inline int dlr_valid(const char *s)
 {
+    if (*s == '[')
+        return dlr_bracket(&s);
     if (*s == '-') ++s;
     return is_digit(*s);
 }
@@ -224,9 +243,17 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                 was. */
             else if (dollar)
             {
-                if (dlr_type(buf) == A_DOLLAR)
+                switch (dlr_type(buf))
+                {
+                case A_DOLLAR:
                     SETDOLLAR(ap, strtoi(buf+1, NULL));
-                else SETDOLLSYM(ap, gensym(buf));
+                    break;
+                case A_DOLLBRAC:
+                    SETDOLLBRAC(ap, strtoi(buf+2, NULL));
+                    break;
+                default:
+                    SETDOLLSYM(ap, gensym(buf));
+                }
             }
             else SETSYMBOL(ap, gensym(buf));
         }
@@ -363,6 +390,10 @@ void binbuf_addbinbuf(t_binbuf *x, const t_binbuf *y)
             sprintf(tbuf, "$%d", ap->a_w.w_index);
             SETSYMBOL(ap, gensym(tbuf));
             break;
+        case A_DOLLBRAC:
+            sprintf(tbuf, "$[%d]", ap->a_w.w_index);
+            SETSYMBOL(ap, gensym(tbuf));
+            break;
         case A_DOLLSYM:
             atom_string(ap, tbuf, MAXPDSTRING);
             SETSYMBOL(ap, gensym(tbuf));
@@ -445,10 +476,18 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                 else usestr = str;
                 if (dollar || (usestr == str && (str2 = str_dollar(usestr))))
                 {
-                    if (dlr_type(usestr) == A_DOLLSYM)
+                    switch (dlr_type(usestr))
+                    {
+                    case A_DOLLAR:
+                        SETDOLLAR(ap, strtoi(usestr+1, NULL));
+                        break;
+                    case A_DOLLBRAC:
+                        SETDOLLBRAC(ap, strtoi(usestr+2, NULL));
+                        break;
+                    default:
                         SETDOLLSYM(ap, usestr == str ?
                             argv->a_w.w_symbol : gensym(usestr));
-                    else SETDOLLAR(ap, strtoi(usestr+1, NULL));
+                    }
                 }
                 else SETSYMBOL(ap, usestr == str ?
                     argv->a_w.w_symbol : gensym(usestr));
@@ -521,7 +560,10 @@ static int binbuf_expanddollsym(const char *s, char *buf, t_atom *dollar0,
     int ac, const t_atom *av, int tonew)
 {
     char *cs;
-    int argno = (int)strtoi(s, &cs);
+    int brac = (*s == '[');
+    int argno = strtoi(s+brac, &cs);
+    if (brac)
+        cs = (*cs == ']') ? cs+1 : (char *)s;
 
     *buf=0;
     if (cs==s)      /* invalid $-expansion (like "$bla") */
@@ -673,7 +715,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
             while (ac && (at->a_type == A_SEMI || at->a_type == A_COMMA))
                 ac--,  at++;
             if (!ac) break;
-            if (at->a_type == A_DOLLAR)
+            if (at->a_type == A_DOLLAR || at->a_type == A_DOLLBRAC)
             {
                 if (at->a_w.w_index <= 0 || at->a_w.w_index > argc)
                 {
@@ -748,6 +790,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 *msp = *at;
                 break;
             case A_DOLLAR:
+            case A_DOLLBRAC:
             {
                 int i = at->a_w.w_index;
                 if (i < 0)

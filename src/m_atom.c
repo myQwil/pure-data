@@ -119,6 +119,9 @@ void atom_string(const t_atom *a, char *buf, unsigned int bufsize)
     case A_DOLLAR:
         sprintf(buf, "$%d", a->a_w.w_index);
         break;
+    case A_DOLLBRAC:
+        sprintf(buf, "$[%d]", a->a_w.w_index);
+        break;
     default:
         bug("atom_string");
     }
