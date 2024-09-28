@@ -288,6 +288,26 @@ int64_t sys_zipread(char *path, char *fname, char **buf, int64_t length)
     return (err ? err : length);
 }
 
+size_t sys_zipwrite(char *path, char *fname, char *buf, size_t length)
+{
+    int err;
+    zip_t *z;
+    strcpy(fname-5, ".pdz");
+    if (!(z = zip_open(path, 0, &err)))
+        return (0);
+
+    zip_source_t *zs;
+    if ((zs = zip_source_buffer(z, buf, length, 0)) == NULL
+     || zip_file_add(z, fname, zs, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8) < 0)
+    {
+        printf("error adding file: %s\n", zip_strerror(z));
+        length = 0;
+    }
+    zip_source_close(zs);
+    zip_close(z);
+    return length;
+}
+
     /* try to open a file in the directory "dir", named "name""ext",
     for reading.  "Name" may have slashes.  The directory is copied to
     "dirresult" which must be at least "size" bytes.  "nameresult" is set
