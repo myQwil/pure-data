@@ -708,12 +708,13 @@ static void graph_create_text(
     SETSYMBOL(fontatoms+0, gensym(sys_font));
     SETFLOAT (fontatoms+1, fontsize);
     SETSYMBOL(fontatoms+2, gensym(sys_fontweight));
-    pdgui_vmess(0, "crr ii rs rr rA rS",
+    pdgui_vmess(0, "crr ii rs rr rk rA rS",
               glist_getcanvas(x),
               "create", "text",
               posX, posY,
               "-text", name,
               "-anchor", anchor,
+              "-fill", PD_COLOR_FG,
               "-font", 3, fontatoms,
               "-tags", numtags, tags);
 }
@@ -751,11 +752,11 @@ static void graph_vis(t_gobj *gr, t_glist *parent_glist, int vis)
     if (x->gl_havewindow)
     {
         if (vis)
-            pdgui_vmess(0, "crr iiiiiiiiii ri rr rr rS",
+            pdgui_vmess(0, "crr iiiiiiiiii ri rk rr rS",
                 glist_getcanvas(x->gl_owner), "create", "polygon",
                 x1,y1, x1,y2, x2,y2, x2,y1, x1,y1,
                 "-width", glist_getzoom(x),
-                "-fill", "#c0c0c0",
+                "-fill", 0xC0C0C0,
                 "-joinstyle", "miter",
                 "-tags", 2, tags2);
         else
@@ -778,11 +779,12 @@ static void graph_vis(t_gobj *gr, t_glist *parent_glist, int vis)
         const char *tags3[] = {tag, "label", "graph" };
 
             /* draw a rectangle around the graph */
-        pdgui_vmess(0, "crr iiiiiiiiii ri rr rS",
+        pdgui_vmess(0, "crr iiiiiiiiii ri rk rr rS",
                   glist_getcanvas(x->gl_owner),
                   "create", "line",
                   x1,y1, x1,y2, x2,y2, x2,y1, x1,y1,
                   "-width", glist_getzoom(x),
+                  "-fill", PD_COLOR_FG,
                   "-capstyle", "projecting",
                   "-tags", 2, tags2);
             /* if there's just one "garray" in the graph, write its name
@@ -1004,13 +1006,13 @@ static void graph_select(t_gobj *z, t_glist *glist, int state)
             rtext_select(y, state);
 
         sprintf(tag, "%sR",  rtext_gettag(y));
-        pdgui_vmess(0, "crs rr",
+        pdgui_vmess(0, "crs rk",
                   glist, "itemconfigure", tag,
-                  "-fill", (state? "blue" : "black"));
+                  "-fill", (state ? PD_COLOR_SELECT : PD_COLOR_FG));
         sprintf(tag, "graph%lx", (t_int)z);
-        pdgui_vmess(0, "crs rr",
+        pdgui_vmess(0, "crs rk",
                   glist_getcanvas(glist), "itemconfigure", tag,
-                  "-fill", (state? "blue" : "black"));
+                  "-fill", (state ? PD_COLOR_SELECT : PD_COLOR_FG));
     }
 }
 
