@@ -44,10 +44,10 @@ static void radio_draw_io(t_radio* x, t_glist* glist, int old_snd_rcv_flags)
     if(!x->x_gui.x_fsf.x_snd_able)
     {
         int height = x->x_gui.x_h * ((x->x_orientation == horizontal)? 1: x->x_number);
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rk rS", canvas, "create", "rectangle",
             xpos, ypos + height + zoom - ioh,
             xpos + iow, ypos + height,
-            "-fill", "black",
+            "-fill", PD_COLOR_IO, "-outline", PD_COLOR_FG,
             "-tags", 2, tags);
 
             /* keep buttons above outlet */
@@ -58,10 +58,10 @@ static void radio_draw_io(t_radio* x, t_glist* glist, int old_snd_rcv_flags)
     pdgui_vmess(0, "crs", canvas, "delete", tag);
     if(!x->x_gui.x_fsf.x_rcv_able)
     {
-        pdgui_vmess(0, "crr iiii rs rS", canvas, "create", "rectangle",
+        pdgui_vmess(0, "crr iiii rk rk rS", canvas, "create", "rectangle",
             xpos, ypos,
             xpos + iow, ypos - zoom + ioh,
-            "-fill", "black",
+            "-fill", PD_COLOR_IO, "-outline", PD_COLOR_FG,
             "-tags", 2, tags);
 
             /* keep buttons above inlet */
@@ -109,8 +109,9 @@ static void radio_draw_config(t_radio* x, t_glist* glist)
         sprintf(tag, "%pBASE%d", x, i);
         pdgui_vmess(0, "crs iiii", canvas, "coords", tag,
             xx11, yy11, xx12, yy12);
-        pdgui_vmess(0, "crs ri rk", canvas, "itemconfigure", tag,
-            "-width", zoom, "-fill", x->x_gui.x_bcol);
+        pdgui_vmess(0, "crs ri rk rk", canvas, "itemconfigure", tag,
+            "-width", zoom,
+            "-fill", x->x_gui.x_bcol, "-outline", PD_COLOR_FG);
 
         sprintf(tag, "%pBUT%d", x, i);
         pdgui_vmess(0, "crs iiii", canvas, "coords", tag,
@@ -170,11 +171,11 @@ static void radio_draw_select(t_radio* x, t_glist* glist)
     int n = x->x_number, i;
     t_canvas *canvas = glist_getcanvas(glist);
     int lcol = x->x_gui.x_lcol;
-    int col = IEM_GUI_COLOR_NORMAL;
+    int col = PD_COLOR_FG;
     char tag[128];
 
     if(x->x_gui.x_fsf.x_selected)
-        lcol = col =  IEM_GUI_COLOR_SELECTED;
+        lcol = col =  PD_COLOR_SELECT;
 
     sprintf(tag, "%pBASE", x);
     pdgui_vmess(0, "crs rk", canvas, "itemconfigure", tag, "-outline", col);
