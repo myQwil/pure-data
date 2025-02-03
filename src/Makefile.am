@@ -369,6 +369,7 @@ if !WINDOWS
 # this flag has to have a single leading "-" for libtool, even though ld uses
 # --export-dynamic, and libtool sends -Wl,--export-dynamic to ld...
 pd_LDFLAGS_core += -export-dynamic
+pd_LDFLAGS_core += -lzip
 endif
 
 ##### Apple Mac OSX #####

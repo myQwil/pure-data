@@ -33,6 +33,7 @@ int sys_open_absolute(const char *name, const char* ext,
     int okgui);
 int sys_trytoopenit(const char *dir, const char *name, const char* ext,
     char *dirresult, char **nameresult, unsigned int size, int bin, int okgui);
+int64_t sys_zipread(char *path, char *fname, char **buf, int64_t length);
 t_symbol *sys_decodedialog(t_symbol *s);
 
 /* s_file.c */

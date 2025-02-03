@@ -302,8 +302,9 @@ proc init_for_platform {} {
             # set file types that open/save recognize
             set ::filetypes \
                 [list \
-                     [list [_ "Associated Files"]  {.pd .pat .mxt} ] \
+                     [list [_ "Associated Files"]  {.pd .pdz .pat .mxt} ] \
                      [list [_ "Pd Files"]          {.pd}  ] \
+                     [list [_ "Pd Zips"]           {.pdz} ] \
                      [list [_ "Max Patch Files"]   {.pat} ] \
                      [list [_ "Max Text Files"]    {.mxt} ] \
                     ]
