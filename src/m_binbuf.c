@@ -54,12 +54,15 @@ typedef struct _slice
     int s_stop;
     int s_step;
     int s_size;
+    const char *s_bgn;
+    const char *s_end;
     t_atom s_atom;
 } t_slice;
 
 static inline t_slice *slice_new(const char *s, int ac)
 {
     char *end;
+    const char *bgn = s;
     int start = strtoi(s+2, &end);
     if (*end == ':') {
         int stop = strtoi(++end, &end);
@@ -90,10 +93,21 @@ static inline t_slice *slice_new(const char *s, int ac)
         }
         t_slice *slice = getbytes(sizeof(t_slice));
         *slice = (t_slice){ .s_start=start, .s_stop=stop, .s_step=step,
-            .s_size=size, .s_atom={0, {0}} };
+            .s_size=size, .s_bgn=bgn, .s_end=end, .s_atom={0, {0}} };
         return slice;
     }
     else return NULL;
+}
+
+#define SLICE_EXPAND(bgn, end, sym) \
+{ \
+    bare = 0; \
+    len = end - bgn; \
+    strncpy(buf, bgn, len); \
+    buf[len] = '\0'; \
+    sym = binbuf_realizedollsym(gensym(buf), argc, argv, \
+        target == &pd_objectmaker); \
+    if (!sym) pd_error(target, "%s: argument number out of range", bgn); \
 }
 
 
@@ -152,6 +166,19 @@ static const char *str_dollar(const char *s)
             break;
     return s;
 }
+
+    /* returns the start of a valid dollar slice */
+static const char *str_slice(const char *s)
+{
+    for (; (s = strchr(s, '$')); ++s)
+        if (s[1] == '[') {
+            const char *sp = s+1;
+            if (dlr_bracket(&sp) == A_DOLLSLICE)
+                break;
+        }
+    return s;
+}
+
 
 /* ------------------------ binbuf ------------------------ */
 struct _binbuf
@@ -738,8 +765,13 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
             case A_COMMA:
                 n = 0;
                 break;
+            case A_DOLLSYM:
+                if ( !(s = str_slice(a->a_w.w_symbol->s_name)) )
+                    break;
+                goto eval_slice;
             case A_DOLLSLICE:
                 s = a->a_w.w_symbol->s_name;
+                eval_slice:
             {
                 t_slice *slice = slice_new(s, argc);
                 if (slice)
@@ -748,6 +780,7 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                     if (ad < n)
                         ad = n;
                     slice->s_atom = *a;
+                    a->a_type = A_DOLLSLICE;
                     a->a_w.w_symbol = (t_symbol *)slice;
                 }
             }
@@ -927,16 +960,34 @@ void binbuf_eval(const t_binbuf *x, t_pd *target, int argc, const t_atom *argv)
                 t_slice *slice = (t_slice *)at->a_w.w_symbol;
                 *at = slice->s_atom;
 
+                int len, bare = 1;
+                char buf[MAXPDSTRING];
+                const char *bgn = at->a_w.w_symbol->s_name;
+                const char *end = slice->s_end + strlen(slice->s_end);
+
+                t_symbol *pre = NULL, *suf = NULL;
+                if (bgn < slice->s_bgn) SLICE_EXPAND(bgn, slice->s_bgn, pre); // prefix
+                if (slice->s_end < end) SLICE_EXPAND(slice->s_end, end, suf); // suffix
+
                 int size=slice->s_size, step=slice->s_step, i=slice->s_start;
+                char *bp = buf;
                 if (size < 1)
                 {
                     pd_error(target, "%s: invalid slice", at->a_w.w_symbol->s_name);
                     SETSYMBOL(msp, slice->s_atom.a_w.w_symbol);
                     ac--, msp++, nargs++;
                 }
+                else if (bare)
+                    for (; size--; i += step, ac--, msp++, nargs++)
+                        *msp = argv[i - 1];
                 else for (; size--; i += step, ac--, msp++, nargs++)
-                    *msp = argv[i - 1];
-
+                {
+                    buf[0] = '\0', bp = buf;
+                    if (pre) bp = stpcpy(bp, pre->s_name);
+                    atom_string(&argv[i - 1], bp, MAXPDSTRING - (bp - buf));
+                    if (suf) strcat(bp, suf->s_name);
+                    SETSYMBOL(msp, gensym(buf));
+                }
                 freebytes(slice, sizeof(t_slice));
                 at++;
                 continue;
