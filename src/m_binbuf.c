@@ -20,11 +20,17 @@
 
 #include "m_private_utils.h"
 
+    /* checks if a character is a digit */
+static inline int is_digit(char c)
+{
+    return ('0' <= c && c <= '9');
+}
+
     /* returns the start of a valid dollar or dollsym */
 static const char *str_dollar(const char *s)
 {
     for (; (s = strchr(s, '$')); ++s)
-        if (('0' <= s[1] && s[1] <= '9'))
+        if (is_digit(s[1]))
             break;
     return s;
 }
@@ -97,7 +103,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
 
                 if (floatstate >= 0)
                 {
-                    int digit = (c >= '0' && c <= '9'),
+                    int digit = is_digit(c),
                         dot = (c == '.'), minus = (c == '-'),
                         plusminus = (minus || (c == '+')),
                         expon = (c == 'e' || c == 'E');
@@ -152,8 +158,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                         if (!digit) floatstate = -1;
                     }
                 }
-                if (!lastslash && c == '$' && (textp != etext &&
-                    textp[0] >= '0' && textp[0] <= '9'))
+                if (!lastslash && c == '$' && (textp != etext && is_digit(*textp)))
                         dollar = 1;
                 if (!slash) bufp++;
                 else if (lastslash)
@@ -181,7 +186,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                 if (buf[0] != '$')
                     dollar = 0;
                 for (bufp = buf+1; *bufp; bufp++)
-                    if (*bufp < '0' || *bufp > '9')
+                    if (!is_digit(*bufp))
                         dollar = 0;
                 if (dollar)
                     SETDOLLAR(ap, atoi(buf+1));
@@ -392,7 +397,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                             slashed = 1;
                         else
                         {
-                            if (*sp2 == '$' && sp2[1] >= '0' && sp2[1] <= '9')
+                            if (*sp2 == '$' && is_digit(sp2[1]))
                                 dollar = 1;
                             *sp1++ = *sp2;
                             slashed = 0;
@@ -408,7 +413,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                     if (*usestr != '$')
                         dollsym = 1;
                     else for (str2 = usestr + 1; *str2; str2++)
-                        if (*str2 < '0' || *str2 > '9')
+                        if (!is_digit(*str2))
                     {
                         dollsym = 1;
                         break;
