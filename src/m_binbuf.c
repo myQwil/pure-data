@@ -26,6 +26,26 @@ static inline int is_digit(char c)
     return ('0' <= c && c <= '9');
 }
 
+    /* fast atoi implementation with end pointer */
+static int strtoi(const char *s, char **end)
+{
+    int neg, n;
+    if (*s == '-') {
+        if (is_digit(s[1]))
+            neg = 1, n = (s[1] - '0'), s += 2;
+        else {
+            if (end) *end = (char *)s;
+            return 0;
+        }
+    }
+    else neg = 0, n = 0;
+
+    for (; is_digit(*s); ++s)
+        n = 10*n + (*s - '0');
+    if (end) *end = (char *)s;
+    return neg ? -n : n;
+}
+
     /* returns the start of a valid dollar or dollsym */
 static const char *str_dollar(const char *s)
 {
@@ -35,6 +55,7 @@ static const char *str_dollar(const char *s)
     return s;
 }
 
+/* ------------------------ binbuf ------------------------ */
 struct _binbuf
 {
     int b_n;
@@ -189,7 +210,7 @@ void binbuf_text(t_binbuf *x, const char *text, size_t size)
                     if (!is_digit(*bufp))
                         dollar = 0;
                 if (dollar)
-                    SETDOLLAR(ap, atoi(buf+1));
+                    SETDOLLAR(ap, strtoi(buf+1, NULL));
                 else SETDOLLSYM(ap, gensym(buf));
             }
             else SETSYMBOL(ap, gensym(buf));
@@ -421,12 +442,7 @@ void binbuf_restore(t_binbuf *x, int argc, const t_atom *argv)
                     if (dollsym)
                         SETDOLLSYM(ap, usestr == str ?
                             argv->a_w.w_symbol : gensym(usestr));
-                    else
-                    {
-                        int dollar = 0;
-                        sscanf(usestr + 1, "%d", &dollar);
-                        SETDOLLAR(ap, dollar);
-                    }
+                    else SETDOLLAR(ap, strtoi(usestr+1, NULL));
                 }
                 else SETSYMBOL(ap, usestr == str ?
                     argv->a_w.w_symbol : gensym(usestr));
@@ -499,7 +515,7 @@ static int binbuf_expanddollsym(const char *s, char *buf, t_atom *dollar0,
     int ac, const t_atom *av, int tonew)
 {
     char *cs;
-    int argno = (int)strtol(s, &cs, 10);
+    int argno = (int)strtoi(s, &cs);
 
     *buf=0;
     if (cs==s)      /* invalid $-expansion (like "$bla") */
