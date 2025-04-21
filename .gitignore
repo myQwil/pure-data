@@ -95,3 +95,7 @@ libpd/test_libpd/test_libpd
 
 # auto-generated layout files
 .directory
+
+# Zig folders
+.zig-cache/
+zig-out/
