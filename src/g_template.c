@@ -1395,15 +1395,7 @@ static int rangecolor(int n)    /* 0 to 9 in 5 steps */
 
 static int numbertocolor(int n)
 {
-    int red, green, blue, color = 0;
-    if (n < 0) n = 0;
-    red = n / 100;
-    green = n % 10;
-    blue = ((n / 10) % 10);
-    color |= rangecolor(red)   << 16;
-    color |= rangecolor(blue)  <<  8;
-    color |= rangecolor(green) <<  0;
-    return color;
+    return (n & 0xFFFFFF);
 }
 
 static void curve_vis(t_gobj *z, t_glist *glist,
