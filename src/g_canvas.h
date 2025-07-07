@@ -50,6 +50,15 @@ in future releases.  The public (stable) API is in m_pd.h. */
 extern "C" {
 #endif
 
+/* ---------------------- color ------------------------------ */
+#define PD_COLOR_IO           0x5555FF
+#define PD_COLOR_BG           0x000000
+#define PD_COLOR_FG           0xFCFCFC
+#define PD_COLOR_GOP          0xFF8080
+#define PD_COLOR_LBL          0xFCFCFC
+#define PD_COLOR_EDIT         0xFF9999
+#define PD_COLOR_SELECT       0x00FFFF
+
 /* --------------------- geometry ---------------------------- */
 #define IOWIDTH 7       /* width of an inlet/outlet in pixels */
 #define IHEIGHT 3       /* height of an inlet in pixels */

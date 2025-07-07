@@ -70,7 +70,7 @@ proc ::dialog_message::create_dialog {mytoplevel} {
     frame .message.f
     pack .message.f -side top -fill x -expand 1
     entry .message.f.entry -width 54 -font {$::font_family 18} -relief sunken \
-        -highlightthickness 1 -highlightcolor blue
+        -highlightthickness 1 -highlightcolor cyan
     label .message.f.semicolon -text ";" -font {$::font_family 24}
     pack .message.f.semicolon -side left
     pack .message.f.entry -side left -padx 10 -fill x -expand 1

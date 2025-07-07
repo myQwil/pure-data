@@ -294,7 +294,7 @@ proc init_for_platform {} {
     switch -- $::windowingsystem {
         "x11" {
             set ::modifier "Control"
-            option add *PatchWindow*Canvas.background "white" startupFile
+            option add *PatchWindow*Canvas.background "#181818" userDefault
             # add control to show/hide hidden files in the open panel (load
             # the tk_getOpenFile dialog once, otherwise it will not work)
             catch {tk_getOpenFile -with-invalid-argument}
@@ -342,6 +342,7 @@ proc init_for_platform {} {
                 # hack until DVSM bug is fixed on macOS 10.15+
                 set ::font_family "Menlo"
             }
+            option add *PatchWindow*Canvas.background "#181818" userDefault
             option add *DialogWindow*background "#E8E8E8" startupFile
             option add *DialogWindow*Entry.highlightBackground "#E8E8E8" startupFile
             option add *DialogWindow*Button.highlightBackground "#E8E8E8" startupFile
@@ -371,7 +372,7 @@ proc init_for_platform {} {
         }
         "win32" {
             set ::modifier "Control"
-            option add *PatchWindow*Canvas.background "white" startupFile
+            option add *PatchWindow*Canvas.background "#181818" userDefault
             # fix menu font size on Windows with tk scaling = 1
             font create menufont -family Tahoma -size -11
             option add *Menu.font menufont startupFile

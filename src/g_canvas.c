@@ -2219,10 +2219,10 @@ void g_canvas_newpdinstance(void)
     THISGUI->i_reloadingabstraction = 0;
     THISGUI->i_dspstate = 0;
     THISGUI->i_dollarzero = 1000;
-    THISGUI->i_foregroundcolor = 0x000000;
-    THISGUI->i_backgroundcolor = 0xFFFFFF;
-    THISGUI->i_selectcolor = 0x0000FF;
-    THISGUI->i_gopcolor = 0xFF0000;
+    THISGUI->i_foregroundcolor = PD_COLOR_FG;
+    THISGUI->i_backgroundcolor = PD_COLOR_BG;
+    THISGUI->i_selectcolor = PD_COLOR_SELECT;
+    THISGUI->i_gopcolor = PD_COLOR_GOP;
     g_editor_newpdinstance();
     g_template_newpdinstance();
 }

@@ -40,10 +40,6 @@
 #define IEM_GUI_COLNR_D_BLUE         28
 #define IEM_GUI_COLNR_D_MAGENTA      29
 
-#define IEM_GUI_COLOR_SELECTED       0x0000FF
-#define IEM_GUI_COLOR_NORMAL         0x000000
-#define IEM_GUI_COLOR_EDITED         0xFF0000
-
 #define IEM_GUI_MAX_COLOR            30
 
 //#define IEM_GUI_DEFAULTSIZE 15

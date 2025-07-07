@@ -135,6 +135,7 @@ proc ::dialog_array::pdtk_array_listview_new {id arrayName page} {
     set sb $windowName.data.sb
     if { [ catch {
         # treeview
+        ttk::style configure Treeview -background black -foreground white
         ttk::treeview $lb \
             -columns {index value} -show headings \
             -height 20 \

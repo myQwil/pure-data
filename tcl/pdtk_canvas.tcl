@@ -99,7 +99,7 @@ proc pdtk_canvas_place_window {width height geometry} {
 # canvas new/saveas
 
 proc pdtk_canvas_new {mytoplevel width height geometry editable \
-        {bgcolor "white"} } {
+        {bgcolor "#181818"} } {
     if { "" eq $geometry } {
         # no position set: this is a new window (rather than one loaded from file)
         # we set a flag here, so we can query (and report) the actual geometry,
@@ -135,6 +135,7 @@ proc pdtk_canvas_new {mytoplevel width height geometry editable \
         -highlightthickness 0 -scrollregion [list 0 0 $width $height] \
         -xscrollcommand "$mytoplevel.xscroll set" \
         -yscrollcommand "$mytoplevel.yscroll set" \
+        -insertbackground white \
         -background $bgcolor
     scrollbar $mytoplevel.xscroll -orient horizontal -command "$tkcanvas xview"
     scrollbar $mytoplevel.yscroll -orient vertical -command "$tkcanvas yview"
@@ -510,13 +511,13 @@ proc ::pdtk_canvas::cleanname {name} {
 
 proc ::pdtk_canvas::cords_to_foreground {mytoplevel {state 1}} {
     if {$::pdtk_canvas::enable_cords_to_foreground} {
-        set col black
+        set col white
         if { $state == 0 } {
-            set col lightgrey
+            set col darkgrey
         }
         foreach id [$mytoplevel find withtag {cord && !selected}] {
-            # don't apply backgrouding on selected (blue) lines
-            if { [lindex [$mytoplevel itemconfigure $id -fill] 4 ] ne "blue" } {
+            # don't apply backgrouding on selected (cyan) lines
+            if { [lindex [$mytoplevel itemconfigure $id -fill] 4 ] ne "cyan" } {
                 $mytoplevel itemconfigure $id -fill $col
             }
         }

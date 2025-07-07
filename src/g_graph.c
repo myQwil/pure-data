@@ -773,11 +773,11 @@ static void graph_vis(t_gobj *gr, t_glist *parent_glist, int vis)
     if (x->gl_havewindow)
     {
         if (vis)
-            pdgui_vmess(0, "crr iiiiiiiiii ri rr rr rS",
+            pdgui_vmess(0, "crr iiiiiiiiii ri rk rr rS",
                 glist_getcanvas(x->gl_owner), "create", "polygon",
                 x1,y1, x1,y2, x2,y2, x2,y1, x1,y1,
                 "-width", glist_getzoom(x),
-                "-fill", "#c0c0c0",
+                "-fill", THISGUI->i_foregroundcolor,
                 "-joinstyle", "miter",
                 "-tags", 2, tags2);
         else
