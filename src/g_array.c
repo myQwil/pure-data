@@ -335,7 +335,7 @@ t_garray *graph_array(t_glist *gl, t_symbol *s, t_symbol *templateargsym,
     array_resize(x->x_scalar->sc_vec[zonset].w_array, n);
 
     template_setfloat(template, gensym("color"), x->x_scalar->sc_vec,
-        0, 1);
+        PD_COLOR_FG, 1);
     template_setfloat(template, gensym("style"), x->x_scalar->sc_vec,
         style, 1);
     template_setfloat(template, gensym("linewidth"), x->x_scalar->sc_vec,

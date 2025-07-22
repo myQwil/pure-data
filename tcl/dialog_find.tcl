@@ -208,7 +208,8 @@ proc ::dialog_find::create_dialog {mytoplevel} {
     pack .find.searchin -side top -fill x -pady 1
 
     entry .find.entry -width 54 -font 18 -relief sunken \
-        -highlightthickness 1 -highlightcolor blue
+        -highlightthickness 1 -highlightcolor cyan \
+        -background black -foreground white -insertbackground white
     pack .find.entry -side top -padx 10
 
     bind .find.entry <Up> "::dialog_find::get_history 1"

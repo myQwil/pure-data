@@ -29,8 +29,8 @@ array set ::pdwindow::missingobjects {}
 
 proc ::pdwindow::set_layout {} {
     variable maxloglevel
-    .pdwindow.text.internal tag configure log0 -foreground "#d00" -background "#ffe0e8"
-    .pdwindow.text.internal tag configure log1 -foreground "#d00"
+    .pdwindow.text.internal tag configure log0 -foreground pink -background "#311"
+    .pdwindow.text.internal tag configure log1 -foreground pink
     # log2 messages are normal black on white
     .pdwindow.text.internal tag configure log3 -foreground "#484848"
 
@@ -254,7 +254,7 @@ proc ::pdwindow::pdtk_pd_dsp {value} {
 proc ::pdwindow::pdtk_pd_dio {red} {
     set dio .pdwindow.header.ioframe.dio
     if {$red == 1} {
-        $dio configure -foreground red
+        $dio configure -foreground pink
     } else {
         $dio configure -foreground [[winfo parent $dio] cget -background]
     }
@@ -371,7 +371,8 @@ proc ::pdwindow::create_window {} {
     option add *PdWindow*Label.background "grey" startupFile
     option add *PdWindow*Checkbutton.background "grey" startupFile
     option add *PdWindow*Menubutton.background "grey" startupFile
-    option add *PdWindow*Text.background "white" startupFile
+    option add *PdWindow*Text.background "#181818" userDefault
+    option add *PdWindow*Text.foreground "white" startupFile
     option add *PdWindow*Entry.background "white" startupFile
 
     toplevel .pdwindow -class PdWindow
@@ -415,7 +416,7 @@ proc ::pdwindow::create_window {} {
         -side top
 
     label .pdwindow.header.loglabel -text [_ "Log:"] -anchor e \
-        -background lightgray
+        -background lightgray -foreground black
     pack .pdwindow.header.loglabel -side left
 
     set loglevels {0 1 2 3 4}
@@ -426,7 +427,7 @@ proc ::pdwindow::create_window {} {
     lappend logmenuitems "4 [_ all]"
     set logmenu \
         [eval tk_optionMenu .pdwindow.header.logmenu ::loglevel $loglevels]
-    .pdwindow.header.logmenu configure -background lightgray
+    .pdwindow.header.logmenu configure -background lightgray -foreground black
     foreach i $loglevels {
         $logmenu entryconfigure $i -label [lindex $logmenuitems $i]
     }
