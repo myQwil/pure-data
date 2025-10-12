@@ -431,14 +431,7 @@ void dsp_tick(void)
 
 int ilog2(int n)
 {
-    int r = -1;
-    if (n <= 0) return(0);
-    while (n)
-    {
-        r++;
-        n >>= 1;
-    }
-    return (r);
+    return (n <= 0) ? 0 : ((sizeof(int) << 3) - 1) - __builtin_clz(n);
 }
 
 

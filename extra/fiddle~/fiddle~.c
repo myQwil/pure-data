@@ -324,13 +324,7 @@ int errno;
 
 int sigfiddle_ilog2(int n)
 {
-    int ret = -1;
-    while (n)
-    {
-        n >>= 1;
-        ret++;
-    }
-    return (ret);
+    return (n <= 0) ? 0 : ((sizeof(int) << 3) - 1) - __builtin_clz(n);
 }
 
 t_float fiddle_mtof(t_float f)
